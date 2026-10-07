@@ -4,9 +4,11 @@ Quanto vale davvero un investimento: al netto di costi e tasse, ed espresso in e
 
 È una singola pagina HTML, senza installazione né server: si apre nel browser e funziona.
 
+**[Apri il calcolatore](https://edofede.github.io/InvestmentsCalc/Calcolo%20investimento.html)**
+
 ## Come si usa
 
-Apri `Calcolo investimento.html` in un browser. Serve la connessione a internet solo per caricare Chart.js e i font.
+Usa il link sopra, oppure scarica `Calcolo investimento.html` e aprilo in un browser. Serve la connessione a internet solo per caricare Chart.js e i font.
 
 I parametri vengono ricordati dal browser tra una visita e l'altra. Il pulsante **Salva con questi parametri** scarica una copia della pagina che si riapre già con i valori attuali, utile per conservare o condividere uno scenario.
 
