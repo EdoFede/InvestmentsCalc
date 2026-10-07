@@ -1,0 +1,2082 @@
+<meta charset="utf-8">
+<title>Calcolatore investimento reale</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --surface-2: #eef1f5;
+  --ink: #131922;
+  --ink-2: #4a5462;
+  --muted: #7a8494;
+  --line: #dde2e9;
+  --line-strong: #c5ccd6;
+  --accent: #2a78d6;
+  --accent-ink: #1c5cab;
+  --accent-tint: #e6f0fc;
+  --hl: #fff4d6;
+  --hl-line: #f0d48a;
+  --neg: #c4362f;
+  /* series */
+  --s-initial: #1baf7a;
+  --s-contrib: #2a78d6;
+  --s-interest: #eb6834;
+  --s-cost: #4a3aa7;
+  --s-infl: #eda100;
+  --s-tax: #e87ba4;
+  --s-annual: #2a78d6;
+  --s-avg: #eb6834;
+  --grid: #e8ecf1;
+  --band-1: #d9e8fa;
+  --on-accent: #ffffff;
+  --good: #1a7f4b;
+  --band-2: #a9cbf2;
+  --font-ui: "Figtree", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Bricolage Grotesque", "Figtree", ui-sans-serif, system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0f1216;
+    --surface: #171b21;
+    --surface-2: #1f242c;
+    --ink: #f1f4f8;
+    --ink-2: #b7c0cc;
+    --muted: #8892a0;
+    --line: #2a3039;
+    --line-strong: #3a424d;
+    --accent: #5598e7;
+    --accent-ink: #86b6ef;
+    --accent-tint: #1a2b40;
+    --hl: #2e2814;
+    --hl-line: #6b5a24;
+    --neg: #ef7b74;
+    --s-initial: #199e70;
+    --s-contrib: #3987e5;
+    --s-interest: #d95926;
+    --s-cost: #9085e9;
+    --s-infl: #c98500;
+    --s-tax: #d55181;
+    --s-annual: #3987e5;
+    --s-avg: #d95926;
+    --grid: #252b33;
+    --band-1: #1c2c42;
+    --on-accent: #0f1216;
+    --good: #4cc38a;
+    --band-2: #24466f;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0f1216;
+  --surface: #171b21;
+  --surface-2: #1f242c;
+  --ink: #f1f4f8;
+  --ink-2: #b7c0cc;
+  --muted: #8892a0;
+  --line: #2a3039;
+  --line-strong: #3a424d;
+  --accent: #5598e7;
+  --accent-ink: #86b6ef;
+  --accent-tint: #1a2b40;
+  --hl: #2e2814;
+  --hl-line: #6b5a24;
+  --neg: #ef7b74;
+  --s-initial: #199e70;
+  --s-contrib: #3987e5;
+  --s-interest: #d95926;
+  --s-cost: #9085e9;
+  --s-infl: #c98500;
+  --s-tax: #d55181;
+  --s-annual: #3987e5;
+  --s-avg: #d95926;
+  --grid: #252b33;
+  --band-1: #1c2c42;
+  --on-accent: #0f1216;
+  --good: #4cc38a;
+  --band-2: #24466f;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.5 var(--font-ui);
+  padding-inline: 16px;
+  padding-block: 28px 56px;
+}
+table { font: inherit; color: inherit; border-collapse: collapse; }
+.wrap { max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+
+header h1 {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3.4vw, 36px);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  margin: 0 0 6px;
+  text-wrap: balance;
+}
+header p { margin: 0; color: var(--ink-2); max-width: 65ch; }
+header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 16px 24px; }
+.head-text { flex: 1 1 420px; min-width: 0; }
+.head-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.save-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  font: inherit; font-size: 14px; font-weight: 600;
+  background: var(--accent); color: var(--on-accent);
+  border: 0; border-radius: 8px; padding: 9px 14px;
+  cursor: pointer; white-space: nowrap;
+}
+.save-btn:hover { background: var(--accent-ink); }
+.save-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.save-btn:disabled { opacity: .6; cursor: progress; }
+.save-status { font-size: 12.5px; color: var(--muted); min-height: 1em; }
+@media (max-width: 640px) { .head-actions { align-items: flex-start; } }
+
+.layout {
+  display: grid;
+  grid-template-columns: 330px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 920px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 20px;
+}
+.panel h2, details.panel > summary {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+.eyebrow {
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* Parametri */
+.params { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); display: flex; flex-direction: column; gap: 18px; }
+@media (min-width: 921px) { .params { max-height: calc(100vh - env(safe-area-inset-top, 0px) - 32px); overflow-y: auto; overscroll-behavior: contain; } }
+@media (max-width: 920px) { .params { position: static; max-height: none; } }
+.pgroup { display: flex; flex-direction: column; gap: 10px; padding-top: 14px; border-top: 1px solid var(--line); }
+.field { display: grid; grid-template-columns: minmax(0, 1fr) 128px; align-items: center; gap: 12px; }
+.field label { font-weight: 500; font-size: 14px; line-height: 1.3; }
+.field .hint { display: block; font-weight: 400; font-size: 12px; color: var(--muted); }
+.inp {
+  display: flex; align-items: center;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 0 10px;
+  transition: border-color .12s;
+}
+.inp:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint); }
+.inp input, .inp select {
+  flex: 1; min-width: 0;
+  border: 0; background: transparent; color: var(--ink);
+  font: inherit; font-size: 14.5px; font-variant-numeric: tabular-nums;
+  text-align: right; padding: 7px 0; outline: none;
+}
+.inp select { text-align: left; cursor: pointer; }
+.inp .unit { color: var(--muted); font-size: 13px; padding-left: 6px; }
+.derived { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink-2); font-size: 14px; padding-right: 11px; }
+.toggle { display: flex; justify-content: flex-end; }
+.toggle input { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  font: inherit; font-size: 12.5px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink-2);
+  border-radius: 999px;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+.chip:hover { border-color: var(--accent); color: var(--accent-ink); }
+.chip:focus-visible, .btn:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn {
+  font: inherit; font-size: 13px;
+  background: transparent; border: 0; color: var(--muted);
+  cursor: pointer; padding: 0; text-decoration: underline; text-underline-offset: 3px;
+  align-self: flex-start;
+}
+.btn:hover { color: var(--ink); }
+.field .hint .btn { font-size: 12px; }
+
+/* Avanzate */
+.adv > summary {
+  list-style: none; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12.5px; font-weight: 600; color: var(--muted);
+  padding: 2px 0;
+}
+.adv > summary::-webkit-details-marker { display: none; }
+.adv > summary::before {
+  content: ""; width: 6px; height: 6px;
+  border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg); transition: transform .15s;
+}
+.adv[open] > summary::before { transform: rotate(45deg) translate(-1px, -1px); }
+.adv > summary:hover { color: var(--ink); }
+.adv .adv-body {
+  margin-top: 8px;
+  background: var(--surface-2);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.adv .inp { background: var(--surface); }
+.adv .field { grid-template-columns: minmax(0, 1fr) 112px; }
+.adv-sub { font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; padding-top: 4px; }
+.adv-sep { border: 0; border-top: 1px solid var(--line); margin: 2px 0; width: 100%; }
+.calc-out { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.calc-out b { color: var(--ink); font-weight: 600; }
+.inp.auto input { color: var(--ink-2); }
+.inp input:disabled { cursor: not-allowed; opacity: .6; }
+.badge { display: inline-block; font-size: 10.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding: 1px 6px; border-radius: 4px; background: var(--accent-tint); color: var(--accent-ink); margin-left: 4px; vertical-align: 1px; }
+
+/* Risultati */
+.main { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 1180px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .kpis { grid-template-columns: minmax(0, 1fr); } }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; }
+.kpi .v { font-family: var(--font-display); font-size: clamp(22px, 2.3vw, 28px); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.kpi .s { font-size: 13px; color: var(--ink-2); }
+.kpi.hero { background: var(--hl); border-color: var(--hl-line); }
+.kpi .v.neg { color: var(--neg); }
+
+.res-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 760px) { .res-grid { grid-template-columns: minmax(0, 1fr); } }
+
+.rtable { width: 100%; margin-top: 12px; font-variant-numeric: tabular-nums; }
+.rtable th, .rtable td { padding: 8px 4px; border-bottom: 1px solid var(--line); }
+.rtable th { text-align: left; font-weight: 500; color: var(--ink-2); }
+.rtable td { text-align: right; font-weight: 600; white-space: nowrap; }
+.rtable tr.sep th, .rtable tr.sep td { border-bottom-color: var(--line-strong); }
+.rtable tr.sum th { color: var(--ink); font-weight: 600; }
+.rtable tr.key th, .rtable tr.key td { background: var(--hl); }
+.rtable tr.key th { color: var(--ink); font-weight: 600; padding-left: 10px; }
+.rtable tr.key td { padding-right: 10px; }
+.rtable .minus { color: var(--neg); }
+.note { font-size: 13px; color: var(--muted); margin: 12px 0 0; max-width: 65ch; }
+.note { display: flex; flex-direction: column; gap: 6px; }
+.rtable .pct-of { font-weight: 400; font-size: 12px; color: var(--muted); margin-left: 4px; }
+
+.donut-box { display: flex; flex-direction: column; gap: 12px; }
+.comp-sub { margin: 0; font-size: 12.5px; color: var(--muted); min-height: 2.6em; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 3px; background: var(--surface-2); border-radius: 8px; }
+.seg button {
+  font: inherit; font-size: 13px; font-weight: 600; color: var(--ink-2);
+  background: transparent; border: 0; border-radius: 6px; padding: 7px 10px; cursor: pointer;
+}
+.seg button:hover { color: var(--ink); }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
+.seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.rtable .exp {
+  font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px; text-align: left;
+}
+.rtable .exp::before {
+  content: ""; flex: none; width: 6px; height: 6px;
+  border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted);
+  transform: rotate(-45deg); transition: transform .15s; margin-right: 2px;
+}
+.rtable .exp[aria-expanded="true"]::before { transform: rotate(45deg) translate(-1px, -1px); }
+.rtable .exp:hover { color: var(--accent-ink); }
+.rtable .exp:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+.rtable tr.det th, .rtable tr.det td { font-size: 13.5px; padding-top: 6px; padding-bottom: 6px; background: var(--surface-2); }
+.rtable tr.det th { padding-left: 26px; font-weight: 400; }
+.rtable tr.det td { font-weight: 500; padding-right: 10px; }
+.donut-wrap { position: relative; width: 100%; max-width: 260px; aspect-ratio: 1; margin: 6px auto 0; }
+.donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; text-align: center; }
+.donut-center .v { font-family: var(--font-display); font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.donut-center .l { font-size: 12px; color: var(--muted); max-width: 58%; line-height: 1.3; }
+.legend li { border-radius: 4px; transition: background .12s; }
+.legend li.on { background: var(--surface-2); }
+.legend { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; }
+.legend li { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; font-variant-numeric: tabular-nums; }
+.legend .sw { width: 12px; height: 12px; border-radius: 3px; }
+.legend .pct { color: var(--muted); min-width: 3.2em; text-align: right; }
+.legend .amt { font-weight: 600; min-width: 6.5em; text-align: right; }
+
+.charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+@media (max-width: 1100px) { .charts { grid-template-columns: minmax(0, 1fr); } }
+.chart-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px; }
+.chart-head p { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+.mini-legend { display: flex; gap: 14px; font-size: 13px; color: var(--ink-2); flex-wrap: wrap; }
+.mini-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.mini-legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.mini-legend i.line { height: 3px; width: 14px; border-radius: 2px; }
+.chart-box { position: relative; height: 320px; margin-top: 12px; }
+
+/* Sezioni collassabili */
+details.panel { padding: 0; }
+details.panel > summary {
+  cursor: pointer; list-style: none;
+  padding: 16px 20px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+details.panel > summary::-webkit-details-marker { display: none; }
+details.panel > summary .sub { font-family: var(--font-ui); font-size: 13px; font-weight: 400; color: var(--muted); }
+details.panel > summary::after { content: "+"; font-family: var(--font-ui); font-size: 20px; color: var(--muted); line-height: 1; }
+details.panel[open] > summary::after { content: "−"; }
+.dbody { padding: 0 20px 20px; display: flex; flex-direction: column; gap: 16px; }
+.scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; max-height: 560px; overflow-y: auto; }
+.ptable { width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ptable th, .ptable td { padding: 7px 12px; text-align: right; border-bottom: 1px solid var(--line); }
+.ptable thead th {
+  position: sticky; top: 0; z-index: 1;
+  background: var(--surface-2); color: var(--ink-2);
+  font-weight: 600; font-size: 12px; white-space: normal; vertical-align: bottom; line-height: 1.3;
+  min-width: 96px;
+}
+.ptable thead th:first-child, .ptable thead th:nth-child(2) { min-width: 0; }
+.ptable tbody th { font-weight: 600; color: var(--ink-2); }
+.ptable tbody tr:hover td, .ptable tbody tr:hover th { background: var(--accent-tint); }
+.ptable .em { font-weight: 600; }
+.ptable tfoot td, .ptable tfoot th { font-weight: 700; background: var(--surface-2); border-bottom: 0; position: sticky; bottom: 0; }
+
+.infl-grid { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 20px; align-items: start; }
+@media (max-width: 760px) { .infl-grid { grid-template-columns: minmax(0, 1fr); } }
+.itable { width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+.itable th, .itable td { padding: 5px 12px; border-bottom: 1px solid var(--line); text-align: right; }
+.itable thead th { position: sticky; top: 0; background: var(--surface-2); color: var(--ink-2); font-size: 12px; }
+.itable tbody th { text-align: left; font-weight: 600; color: var(--ink-2); }
+.avgs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 640px) { .avgs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.avg { background: var(--surface-2); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+.avg .v { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.avg .l { font-size: 12px; color: var(--muted); }
+.mc-top { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
+@media (max-width: 760px) { .mc-top { grid-template-columns: minmax(0, 1fr); } }
+.mc-intro { margin: 0; color: var(--ink-2); font-size: 14px; max-width: 65ch; }
+.mc-vol { background: var(--surface-2); border-radius: 8px; padding: 10px 12px; grid-template-columns: minmax(0, 1fr) 96px; }
+.mc-vol .inp { background: var(--surface); }
+.mc-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 1000px) { .mc-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .mc-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.mc-stats .avg.mid { background: var(--accent-tint); }
+.mini-legend i.dash { height: 0; width: 16px; border-top: 2px dashed var(--ink-2); border-radius: 0; background: none; }
+
+[hidden] { display: none !important; }
+.cmp-layout { grid-template-columns: 470px minmax(0, 1fr); }
+@media (max-width: 1100px) { .cmp-layout { grid-template-columns: minmax(0, 1fr); } }
+.crow { display: grid; grid-template-columns: minmax(0, 1fr) 112px 112px; gap: 8px; align-items: center; }
+.crow > label { font-weight: 500; font-size: 13.5px; line-height: 1.3; }
+.crow > label .hint { display: block; font-weight: 400; font-size: 12px; color: var(--muted); }
+.crow .inp input, .crow .inp select { font-size: 14px; }
+.crow .toggle { justify-content: center; }
+.chead { font-size: 12.5px; font-weight: 600; color: var(--ink-2); padding-top: 4px; }
+.chead span { display: inline-flex; align-items: center; gap: 6px; justify-content: center; }
+i.sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
+.chead i.sw { margin-right: 0; }
+.cell.diff.inp { border-color: var(--accent); background: var(--accent-tint); }
+.cell.diff.toggle input { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cmp-actions { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 14px; border-top: 1px solid var(--line); }
+.scroll-x { overflow-x: auto; }
+.ctable { min-width: 520px; }
+.ctable thead th { font-size: 12.5px; font-weight: 600; color: var(--ink-2); text-align: right; padding: 6px 4px; border-bottom: 1px solid var(--line-strong); white-space: nowrap; }
+.ctable td.d { min-width: 7em; }
+.rtable .good { color: var(--good); }
+.rtable .eq { color: var(--muted); }
+@media (max-width: 520px) { .crow { grid-template-columns: minmax(0, 1fr) 92px 92px; } }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line-strong); overflow-x: auto; }
+.tabs [role="tab"] {
+  font: inherit; background: none; border: 0; cursor: pointer; color: var(--muted);
+  display: flex; flex-direction: column; align-items: flex-start; gap: 1px; text-align: left;
+  padding: 10px 18px 12px; border-bottom: 3px solid transparent; margin-bottom: -1px; white-space: nowrap;
+}
+.tabs [role="tab"] b { font-family: var(--font-display); font-size: 17px; font-weight: 600; color: var(--ink-2); }
+.tabs [role="tab"] span { font-size: 12.5px; }
+.tabs [role="tab"]:hover b { color: var(--ink); }
+.tabs [role="tab"][aria-selected="true"] { border-bottom-color: var(--accent); }
+.tabs [role="tab"][aria-selected="true"] b { color: var(--ink); }
+.tabs [role="tab"]:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 6px 6px 0 0; }
+@media (max-width: 560px) { .tabs [role="tab"] { padding: 8px 12px 10px; } .tabs [role="tab"] span { display: none; } }
+.field.stack { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+.inp.solved { background: var(--accent-tint); border-color: transparent; }
+.inp.solved input:disabled { opacity: 1; color: var(--accent-ink); font-weight: 600; cursor: default; -webkit-text-fill-color: var(--accent-ink); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="head-text">
+      <h1>Calcolatore investimento reale</h1>
+      <p>Quanto vale davvero un investimento: al netto di costi e tasse, ed espresso in euro di oggi, cioè tenendo conto dell'inflazione.</p>
+    </div>
+    <div class="head-actions">
+      <button type="button" class="save-btn" id="save-file" title="Scarica una copia della pagina che si apre con i parametri attuali">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v8m0 0L4.8 6.8M8 10l3.2-3.2M3 12.5h10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Salva con questi parametri
+      </button>
+      <span class="save-status" id="save-status" role="status" aria-live="polite"></span>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabbar" role="tablist" aria-label="Calcolatori">
+    <button type="button" role="tab" id="tabbtn-acc" data-tab="acc" aria-controls="tab-acc" aria-selected="true"><b>Accumulo</b><span>Quanto avrò a fine piano</span></button>
+    <button type="button" role="tab" id="tabbtn-obj" data-tab="obj" aria-controls="tab-obj" aria-selected="false" tabindex="-1"><b>Obiettivo</b><span>Quanto devo versare</span></button>
+    <button type="button" role="tab" id="tabbtn-wd" data-tab="wd" aria-controls="tab-wd" aria-selected="false" tabindex="-1"><b>Prelievo</b><span>Quanto posso prelevare</span></button>
+    <button type="button" role="tab" id="tabbtn-cmp" data-tab="cmp" aria-controls="tab-cmp" aria-selected="false" tabindex="-1"><b>Confronto</b><span>Quale piano conviene</span></button>
+  </nav>
+
+  <section id="tab-acc" role="tabpanel" aria-labelledby="tabbtn-acc">
+  <div class="layout">
+    <!-- PARAMETRI -->
+    <aside class="panel params" aria-label="Parametri">
+      <h2>Parametri</h2>
+
+      <div class="pgroup">
+        <span class="eyebrow">Versamenti</span>
+        <div class="field"><label for="p-initial">Versamento iniziale</label><div class="inp"><input id="p-initial" type="number" min="0" step="500" value="20000"><span class="unit">€</span></div></div>
+        <div class="field"><label for="p-monthly">Versamento mensile<span class="hint" id="h-monthly">&nbsp;</span></label><div class="inp" id="w-monthly"><input id="p-monthly" type="number" min="0" step="10" value="200"><span class="unit">€</span></div></div>
+        <div class="field"><label for="p-annual">Versamento annuo<span class="hint" id="h-annual">&nbsp;</span></label><div class="inp" id="w-annual"><input id="p-annual" type="number" min="0" step="100" value="2400"><span class="unit">€</span></div></div>
+        <details class="adv" id="adv-contrib">
+          <summary>Avanzate</summary>
+          <div class="adv-body">
+            <div class="field"><label for="p-freq">Frequenza versamenti periodici<span class="hint" id="h-freq">&nbsp;</span></label><div class="inp"><select id="p-freq"><option value="12">Mensile</option><option value="4">Trimestrale</option><option value="2">Semestrale</option><option value="1">Annuale</option></select></div></div>
+            <div class="field"><label for="p-adjust">Adegua i versamenti periodici all'inflazione<span class="hint">Crescono ogni anno del tasso d'inflazione</span></label><div class="toggle"><input id="p-adjust" type="checkbox"></div></div>
+            <div class="field"><label for="p-freepac">PAC gratuito<span class="hint">Nessuna commissione sui versamenti periodici</span></label><div class="toggle"><input id="p-freepac" type="checkbox" checked></div></div>
+          </div>
+        </details>
+      </div>
+
+      <div class="pgroup">
+        <span class="eyebrow">Rendimento e costi</span>
+        <div class="field"><label for="p-return">Rendimento medio annuo<span class="hint">Lordo, prima dei costi</span></label><div class="inp"><input id="p-return" type="number" step="0.1" value="7"><span class="unit">%</span></div></div>
+        <div class="field"><label for="p-tax">Tassazione al prelievo<span class="hint">Sulle plusvalenze</span></label><div class="inp"><input id="p-tax" type="number" min="0" max="100" step="0.5" value="26"><span class="unit">%</span></div></div>
+        <details class="adv" id="adv-costs">
+          <summary>Avanzate</summary>
+          <div class="adv-body">
+            <div class="field"><label for="p-ter">Spese annue fondi (TER)<span class="hint">Prelevate dal fondo sul capitale</span></label><div class="inp"><input id="p-ter" type="number" min="0" step="0.05" value="0.2"><span class="unit">%</span></div></div>
+            <hr class="adv-sep">
+            <span class="adv-sub">Imposta di bollo</span>
+            <div class="field"><label for="p-bollo-on">Includi imposta di bollo<span class="hint">Dovuta sul conto titoli in Italia</span></label><div class="toggle"><input id="p-bollo-on" type="checkbox" checked></div></div>
+            <div class="field"><label for="p-bollo">Aliquota annua<span class="hint">Sul valore del conto a fine anno</span></label><div class="inp" id="w-bollo"><input id="p-bollo" type="number" min="0" step="0.05" value="0.2"><span class="unit">%</span></div></div>
+            <hr class="adv-sep">
+            <span class="adv-sub">Commissioni di acquisto</span>
+            <div class="field"><label for="p-fee-pct">Commissione per operazione</label><div class="inp"><input id="p-fee-pct" type="number" min="0" step="0.01" value="0.19"><span class="unit">%</span></div></div>
+            <div class="field"><label for="p-fee-min">Minimo per operazione</label><div class="inp"><input id="p-fee-min" type="number" min="0" step="0.5" value="1.5"><span class="unit">€</span></div></div>
+            <div class="field"><label for="p-fee-max">Massimo per operazione<span class="hint">0 = nessun massimo</span></label><div class="inp"><input id="p-fee-max" type="number" min="0" step="1" value="18"><span class="unit">€</span></div></div>
+            <div class="field"><label for="p-fee-ops">Operazioni per versamento<span class="hint">Es. 2 se acquisti due ETF</span></label><div class="inp"><input id="p-fee-ops" type="number" min="1" step="1" value="1"></div></div>
+            <div class="calc-out"><span id="o-fee-per">Costo per versamento</span><b id="o-fee-per-v">–</b></div>
+            <div class="calc-out"><span>Costo versamento iniziale</span><b id="o-fee-init">–</b></div>
+            <div class="field"><label for="p-cost">Costo annuale operazioni<span class="hint" id="h-cost">&nbsp;</span></label><div class="inp" id="w-cost"><input id="p-cost" type="number" min="0" step="1"><span class="unit">€</span></div></div>
+          </div>
+        </details>
+      </div>
+
+      <div class="pgroup">
+        <span class="eyebrow">Inflazione</span>
+        <div class="field"><label for="p-infl">Inflazione media</label><div class="inp"><input id="p-infl" type="number" step="0.1" value="2"><span class="unit">%</span></div></div>
+        <details class="adv" id="adv-infl">
+          <summary>Avanzate</summary>
+          <div class="adv-body">
+            <span class="adv-sub">Usa una media storica (Italia)</span>
+            <div class="chips" id="infl-chips" aria-label="Usa una media storica"></div>
+          </div>
+        </details>
+      </div>
+
+      <div class="pgroup">
+        <span class="eyebrow">Orizzonte</span>
+        <div class="field"><label for="p-start">Anno inizio PAC</label><div class="inp"><input id="p-start" type="number" step="1" value="2026"></div></div>
+        <div class="field"><label for="p-years">Durata</label><div class="inp"><input id="p-years" type="number" min="1" max="80" step="1" value="30"><span class="unit">anni</span></div></div>
+        <details class="adv" id="adv-horizon">
+          <summary>Avanzate</summary>
+          <div class="adv-body">
+            <div class="field"><label for="p-stop">Interrompi versamenti periodici dopo<span class="hint">Il capitale resta investito fino alla fine</span></label><div class="inp"><input id="p-stop" type="number" min="0" max="80" step="1" value="30"><span class="unit">anni</span></div></div>
+          </div>
+        </details>
+      </div>
+
+      <button class="btn" id="reset" type="button">Ripristina valori di esempio</button>
+    </aside>
+
+    <!-- RISULTATI -->
+    <section class="main" aria-label="Risultati">
+      <div class="kpis">
+        <div class="kpi"><span class="eyebrow">Totale versato</span><span class="v" id="k-contrib">–</span><span class="s" id="k-contrib-s">&nbsp;</span></div>
+        <div class="kpi"><span class="eyebrow">Bilancio finale tassato</span><span class="v" id="k-net">–</span><span class="s" id="k-net-s">&nbsp;</span></div>
+        <div class="kpi hero"><span class="eyebrow">Tassato e deflazionato</span><span class="v" id="k-real">–</span><span class="s" id="k-real-s">&nbsp;</span></div>
+        <div class="kpi"><span class="eyebrow">Rendimento reale</span><span class="v" id="k-irr">–</span><span class="s" id="k-irr-s">&nbsp;</span></div>
+      </div>
+
+      <div class="panel res-grid">
+        <div>
+          <h2>Risultati</h2>
+          <table class="rtable" id="rtable"><tbody></tbody></table>
+          <div class="note" id="r-note"></div>
+        </div>
+        <div class="donut-box">
+          <h2>Composizione finale</h2>
+          <div class="seg" role="group" aria-label="Scenario della composizione">
+            <button type="button" id="comp-snap" data-comp="snap" aria-pressed="true">Fotografia a fine piano</button>
+            <button type="button" id="comp-sell" data-comp="sell" aria-pressed="false">Prelievo totale</button>
+          </div>
+          <p class="comp-sub" id="comp-sub">&nbsp;</p>
+          <div class="donut-wrap"><canvas id="c-donut" aria-label="Composizione finale"></canvas>
+            <div class="donut-center"><span class="v" id="donut-total">–</span><span class="l" id="donut-total-l">bilancio finale</span></div>
+          </div>
+          <ul class="legend" id="donut-legend"></ul>
+        </div>
+      </div>
+
+      <div class="charts">
+        <div class="panel">
+          <div class="chart-head">
+            <div><h2>Proiezione</h2><p>Valori nominali, prima delle tasse</p></div>
+            <div class="mini-legend"><span><i style="background:var(--s-contrib)"></i>Versamenti</span><span><i style="background:var(--s-interest)"></i>Interessi</span></div>
+          </div>
+          <div class="chart-box"><canvas id="c-nominal" aria-label="Proiezione nominale"></canvas></div>
+        </div>
+        <div class="panel">
+          <div class="chart-head">
+            <div><h2>Proiezione tassata e deflazionata</h2><p id="real-sub">In euro di oggi, se liquidato in quell'anno</p></div>
+            <div class="mini-legend"><span><i style="background:var(--s-contrib)"></i>Versamenti</span><span><i style="background:var(--s-interest)"></i>Interessi netti</span></div>
+          </div>
+          <div class="chart-box"><canvas id="c-real" aria-label="Proiezione tassata e deflazionata"></canvas></div>
+        </div>
+      </div>
+
+      <details class="panel" id="det-mc" open>
+        <summary><span>Scenari di mercato <span class="sub">· 2.000 simulazioni con rendimenti variabili</span></span></summary>
+        <div class="dbody">
+          <div class="mc-top">
+            <p class="mc-intro">I mercati non rendono la stessa cifra ogni anno. Qui il rendimento medio dei parametri oscilla con la volatilità indicata: la linea mediana corrisponde alla proiezione principale, le fasce mostrano dove si colloca la maggior parte dei risultati. Valori tassati e in euro di oggi.</p>
+            <div class="field mc-vol"><label for="p-vol">Volatilità annua<span class="hint">≈15% azionario globale · ≈10% bilanciato · ≈5% obbligazionario</span></label><div class="inp"><input id="p-vol" type="number" min="0" max="60" step="1" value="15"><span class="unit">%</span></div></div>
+          </div>
+          <div class="mc-stats" id="mc-stats"></div>
+          <div>
+            <div class="chart-head">
+              <p>Valore tassato e deflazionato, se liquidato in quell'anno</p>
+              <div class="mini-legend"><span><i style="background:var(--band-1)"></i>10–90%</span><span><i style="background:var(--band-2)"></i>25–75%</span><span><i class="line" style="background:var(--s-contrib)"></i>Mediana</span><span><i class="line dash"></i>Versato in euro di oggi</span></div>
+            </div>
+            <div class="chart-box" style="height:340px"><canvas id="c-mc" aria-label="Scenari di mercato"></canvas></div>
+          </div>
+          <p class="note" id="mc-note"></p>
+        </div>
+      </details>
+
+      <details class="panel" id="det-proj">
+        <summary><span>Proiezione anno per anno <span class="sub">· tabella completa</span></span></summary>
+        <div class="dbody">
+          <div class="scroll"><table class="ptable" id="ptable"><thead></thead><tbody></tbody><tfoot></tfoot></table></div>
+        </div>
+      </details>
+
+      <details class="panel" id="det-infl">
+        <summary><span>Inflazione storica <span class="sub">· Italia, 1955–2025</span></span></summary>
+        <div class="dbody">
+          <div class="avgs" id="avgs"></div>
+          <div class="infl-grid">
+            <div>
+              <div class="chart-head">
+                <p>Inflazione annua e media mobile a 5 anni</p>
+                <div class="mini-legend"><span><i class="line" style="background:var(--s-annual)"></i>Annua</span><span><i class="line" style="background:var(--s-avg)"></i>Media mobile 5 anni</span></div>
+              </div>
+              <div class="chart-box" style="height:360px"><canvas id="c-infl" aria-label="Inflazione storica"></canvas></div>
+            </div>
+            <div class="scroll" style="max-height:400px"><table class="itable" id="itable"><thead><tr><th style="text-align:left">Anno</th><th>Inflazione</th></tr></thead><tbody></tbody></table></div>
+          </div>
+        </div>
+      </details>
+    </section>
+  </div>
+  </section>
+
+  <section id="tab-obj" role="tabpanel" aria-labelledby="tabbtn-obj" hidden>
+    <div class="layout">
+      <aside class="panel params" id="params-obj" aria-label="Parametri obiettivo"></aside>
+      <div class="main">
+        <div class="kpis">
+          <div class="kpi hero"><span class="eyebrow" id="ok-main-l">Versamento necessario</span><span class="v" id="ok-main">–</span><span class="s" id="ok-main-s">&nbsp;</span></div>
+          <div class="kpi"><span class="eyebrow">Totale versato</span><span class="v" id="ok-contrib">–</span><span class="s" id="ok-contrib-s">&nbsp;</span></div>
+          <div class="kpi"><span class="eyebrow">Risultato atteso</span><span class="v" id="ok-final">–</span><span class="s" id="ok-final-s">&nbsp;</span></div>
+          <div class="kpi"><span class="eyebrow">Probabilità di successo</span><span class="v" id="ok-prob">–</span><span class="s" id="ok-prob-s">&nbsp;</span></div>
+        </div>
+        <div class="panel">
+          <div class="chart-head">
+            <div><h2>Percorso verso l'obiettivo</h2><p id="o-chart-sub">&nbsp;</p></div>
+            <div class="mini-legend"><span><i style="background:var(--band-1)"></i>10–90%</span><span><i style="background:var(--band-2)"></i>25–75%</span><span><i class="line" style="background:var(--s-contrib)"></i>Rendimento costante</span><span><i class="line dash"></i>Obiettivo</span></div>
+          </div>
+          <div class="chart-box" style="height:360px"><canvas id="c-obj" aria-label="Percorso verso l'obiettivo"></canvas></div>
+          <p class="note" id="o-note"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-wd" role="tabpanel" aria-labelledby="tabbtn-wd" hidden>
+    <div class="layout">
+      <aside class="panel params" id="params-wd" aria-label="Parametri prelievo"></aside>
+      <div class="main">
+        <div class="kpis">
+          <div class="kpi hero"><span class="eyebrow" id="wk-main-l">Il capitale dura</span><span class="v" id="wk-main">–</span><span class="s" id="wk-main-s">&nbsp;</span></div>
+          <div class="kpi"><span class="eyebrow">Probabilità</span><span class="v" id="wk-prob">–</span><span class="s" id="wk-prob-s">&nbsp;</span></div>
+          <div class="kpi"><span class="eyebrow">Prelevato netto</span><span class="v" id="wk-net">–</span><span class="s" id="wk-net-s">&nbsp;</span></div>
+          <div class="kpi"><span class="eyebrow">Capitale residuo</span><span class="v" id="wk-left">–</span><span class="s" id="wk-left-s">&nbsp;</span></div>
+        </div>
+        <div class="panel">
+          <div class="chart-head">
+            <div><h2>Capitale durante i prelievi</h2><p>Ai prezzi di inizio prelievi, a fine di ogni anno</p></div>
+            <div class="mini-legend"><span><i style="background:var(--band-1)"></i>10–90%</span><span><i style="background:var(--band-2)"></i>25–75%</span><span><i class="line" style="background:var(--s-contrib)"></i>Rendimento costante</span></div>
+          </div>
+          <div class="chart-box" style="height:360px"><canvas id="c-wd" aria-label="Capitale durante i prelievi"></canvas></div>
+          <p class="note" id="w-note"></p>
+        </div>
+        <details class="panel" id="det-wd">
+          <summary><span>Prelievi anno per anno <span class="sub">· rendimento costante</span></span></summary>
+          <div class="dbody">
+            <div class="scroll"><table class="ptable" id="wtable"><thead></thead><tbody></tbody><tfoot></tfoot></table></div>
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-cmp" role="tabpanel" aria-labelledby="tabbtn-cmp" hidden>
+    <div class="layout cmp-layout">
+      <aside class="panel params" id="params-cmp" aria-label="Parametri confronto"></aside>
+      <div class="main">
+        <div class="kpis">
+          <div class="kpi"><span class="eyebrow"><i class="sw" style="background:var(--s-contrib)"></i><span id="ck-a-l">Piano A</span></span><span class="v" id="ck-a">–</span><span class="s" id="ck-a-s">&nbsp;</span></div>
+          <div class="kpi"><span class="eyebrow"><i class="sw" style="background:var(--s-interest)"></i><span id="ck-b-l">Piano B</span></span><span class="v" id="ck-b">–</span><span class="s" id="ck-b-s">&nbsp;</span></div>
+          <div class="kpi hero"><span class="eyebrow">Differenza B − A</span><span class="v" id="ck-diff">–</span><span class="s" id="ck-diff-s">&nbsp;</span></div>
+          <div class="kpi"><span class="eyebrow">B meglio di A</span><span class="v" id="ck-win">–</span><span class="s" id="ck-win-s">&nbsp;</span></div>
+        </div>
+        <div class="panel">
+          <h2>Risultati a confronto</h2>
+          <div class="scroll-x"><table class="rtable ctable" id="ctable"><thead></thead><tbody></tbody></table></div>
+        </div>
+        <div class="panel">
+          <div class="chart-head">
+            <div><h2>Valore nel tempo</h2><p id="c-cmp-sub">&nbsp;</p></div>
+            <div class="mini-legend"><span><i class="line" style="background:var(--s-contrib)"></i><span id="cl-a">Piano A</span></span><span><i class="line" style="background:var(--s-interest)"></i><span id="cl-b">Piano B</span></span></div>
+          </div>
+          <div class="chart-box" style="height:360px"><canvas id="c-cmp" aria-label="Valore nel tempo dei due piani"></canvas></div>
+          <p class="note" id="cmp-note"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script id="lib-chartjs" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script id="app">
+(() => {
+  // ---------- Dati inflazione storica (Italia) ----------
+  const INFL = [[1955,2.3],[1956,3.4],[1957,1.3],[1958,2.9],[1959,-0.5],[1960,2.4],[1961,2.1],[1962,4.7],[1963,7.5],[1964,5.9],[1965,4.5],[1966,2.3],[1967,3.7],[1968,1.3],[1969,2.7],[1970,5],[1971,4.8],[1972,5.7],[1973,10.8],[1974,19.2],[1975,17],[1976,16.7],[1977,17],[1978,12.1],[1979,14.8],[1980,21.2],[1981,17.8],[1982,16.5],[1983,14.7],[1984,10.8],[1985,9.2],[1986,5.8],[1987,4.7],[1988,5.1],[1989,6.3],[1990,6.5],[1991,6.3],[1992,5.3],[1993,4.6],[1994,4.1],[1995,5.2],[1996,4],[1997,2],[1998,2],[1999,1.7],[2000,2.5],[2001,2.8],[2002,2.5],[2003,2.7],[2004,2.2],[2005,2],[2006,2.1],[2007,1.8],[2008,3.3],[2009,0.8],[2010,1.5],[2011,2.8],[2012,3],[2013,1.2],[2014,0.2],[2015,0],[2016,-0.1],[2017,1.2],[2018,1.1],[2019,0.6],[2020,-0.1],[2021,1.9],[2022,8.2],[2023,5.6],[2024,1],[2025,1.6]];
+
+  const DEFAULTS = {
+    initial: 20000, periodic: 2400, lead: 'monthly', freq: 12, adjust: false, freePac: true,
+    ret: 7, tax: 26, ter: 0.2, bollo: 0.2, bolloOn: true, vol: 15, feePct: 0.19, feeMin: 1.5, feeMax: 18, feeOps: 1, costOverride: null,
+    infl: 2, start: 2026, years: 30, stop: 30
+  };
+  const STORE_KEY = 'pac-reale-params-v2';
+  const FREQ_LABEL = { 12: 'mensile', 4: 'trimestrale', 2: 'semestrale', 1: 'annuale' };
+
+  const $ = id => document.getElementById(id);
+  const FONT = 'Figtree, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif';
+  const fmtEur = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0, useGrouping: 'always' });
+  const fmtEur2 = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: 'always' });
+  const fmtNum = new Intl.NumberFormat('it-IT', { maximumFractionDigits: 0, useGrouping: 'always' });
+  const fmtPct = (v, d = 1) => new Intl.NumberFormat('it-IT', { minimumFractionDigits: d, maximumFractionDigits: d }).format(v) + '%';
+  const eur = v => fmtEur.format(Math.round(v));
+  const eur2 = v => fmtEur2.format(v);
+  const eurShort = v => {
+    const a = Math.abs(v);
+    if (a >= 1e6) return new Intl.NumberFormat('it-IT', { maximumFractionDigits: 1 }).format(v / 1e6) + ' Mln €';
+    return fmtNum.format(Math.round(v)) + ' €';
+  };
+  const round2 = v => Math.round(v * 100) / 100;
+
+  // ---------- Parametri ----------
+  // Stato non leggibile direttamente dai campi: quale tra mensile/annuo è stato
+  // compilato per ultimo, e l'eventuale costo annuale operazioni inserito a mano.
+  const state = { lead: DEFAULTS.lead, costOverride: DEFAULTS.costOverride };
+
+  function readParams() {
+    const n = (id, def) => { const v = parseFloat($(id).value); return Number.isFinite(v) ? v : def; };
+    const periodic = state.lead === 'monthly' ? Math.max(0, n('p-monthly', 0)) * 12 : Math.max(0, n('p-annual', 0));
+    return {
+      initial: Math.max(0, n('p-initial', 0)),
+      periodic, lead: state.lead,
+      freq: parseInt($('p-freq').value, 10) || 12,
+      adjust: $('p-adjust').checked,
+      freePac: $('p-freepac').checked,
+      ret: n('p-return', 0),
+      tax: Math.min(100, Math.max(0, n('p-tax', 0))),
+      ter: Math.max(0, n('p-ter', 0)),
+      bollo: Math.max(0, n('p-bollo', 0)),
+      bolloOn: $('p-bollo-on').checked,
+      vol: Math.min(60, Math.max(0, n('p-vol', 15))),
+      feePct: Math.max(0, n('p-fee-pct', 0)),
+      feeMin: Math.max(0, n('p-fee-min', 0)),
+      feeMax: Math.max(0, n('p-fee-max', 0)),
+      feeOps: Math.max(1, Math.round(n('p-fee-ops', 1))),
+      costOverride: state.costOverride,
+      infl: n('p-infl', 0),
+      start: Math.round(n('p-start', DEFAULTS.start)),
+      years: Math.min(80, Math.max(1, Math.round(n('p-years', 1)))),
+      stop: Math.max(0, Math.round(n('p-stop', 0)))
+    };
+  }
+  function writeParams(p) {
+    state.lead = p.lead === 'annual' ? 'annual' : 'monthly';
+    state.costOverride = Number.isFinite(p.costOverride) ? p.costOverride : null;
+    $('p-initial').value = p.initial;
+    $('p-monthly').value = round2(p.periodic / 12);
+    $('p-annual').value = round2(p.periodic);
+    $('p-freq').value = String(p.freq);
+    $('p-adjust').checked = !!p.adjust;
+    $('p-freepac').checked = p.freePac !== false;
+    $('p-return').value = p.ret;
+    $('p-tax').value = p.tax;
+    $('p-ter').value = p.ter;
+    $('p-bollo').value = p.bollo;
+    $('p-bollo-on').checked = p.bolloOn !== false;
+    $('p-vol').value = p.vol;
+    $('p-fee-pct').value = p.feePct;
+    $('p-fee-min').value = p.feeMin;
+    $('p-fee-max').value = p.feeMax;
+    $('p-fee-ops').value = p.feeOps;
+    $('p-infl').value = p.infl;
+    $('p-start').value = p.start;
+    $('p-years').value = p.years;
+    $('p-stop').value = p.stop;
+  }
+  function saveParams(p) { try { localStorage.setItem(STORE_KEY, JSON.stringify(p)); } catch (e) {} }
+  // Parametri incorporati da "Salva con questi parametri": hanno la precedenza.
+  function embeddedParams() {
+    const el = document.getElementById('saved-params');
+    if (!el) return null;
+    try { return JSON.parse(el.textContent); } catch (e) { return null; }
+  }
+  function loadParams() {
+    const emb = embeddedParams();
+    if (emb) return Object.assign({}, DEFAULTS, emb.acc || emb);
+    try { const s = localStorage.getItem(STORE_KEY); if (s) return Object.assign({}, DEFAULTS, JSON.parse(s)); } catch (e) {}
+    return Object.assign({}, DEFAULTS);
+  }
+
+  // ---------- Costi operazioni ----------
+  // Ogni versamento è diviso in parti uguali tra le operazioni previste; ogni
+  // operazione paga la commissione % limitata tra minimo e massimo (0 = senza massimo).
+  function tradeCost(p, amount) {
+    if (amount <= 0) return 0;
+    const per = amount / p.feeOps;
+    let fee = per * p.feePct / 100;
+    fee = Math.max(fee, p.feeMin);
+    if (p.feeMax > 0) fee = Math.min(fee, p.feeMax);
+    return fee * p.feeOps;
+  }
+
+  // ---------- Simulazione ----------
+  // Simulazione mensile: i versamenti periodici avvengono a inizio mese, trimestre,
+  // semestre o anno; il rendimento si capitalizza mensilmente al tasso equivalente;
+  // il TER si preleva mensilmente in proporzione al capitale; le commissioni di
+  // acquisto si pagano a ogni versamento e riducono la somma investita.
+  // L'imposta di bollo si preleva a fine anno sul valore del conto.
+  // I valori deflazionati sono il nominale diviso (1 + inflazione)^anni trascorsi.
+  // Motore comune: percorre il piano mese per mese. `growth(y, m)` restituisce il
+  // fattore di crescita lordo del mese (costante nella proiezione, casuale negli scenari).
+  // `onYear` riceve lo stato a fine anno; `onFlow` ogni versamento (per il rendimento interno).
+  function runPlan(p, growth, onYear, onFlow) {
+    const i = p.infl / 100, ter = p.ter / 100;
+    const bollo = p.bolloOn ? p.bollo / 100 : 0;
+    const feeM = 1 - Math.pow(1 - ter, 1 / 12);
+    const k = p.freq, step = 12 / k;
+    const initialFee = Math.min(p.initial, tradeCost(p, p.initial));
+    let bal = p.initial - initialFee, contribPeriodic = 0, contribPayReal = p.initial;
+    if (onFlow && p.initial > 0) onFlow(0, p.initial);
+    for (let y = 1; y <= p.years; y++) {
+      const startBal = y === 1 ? p.initial : bal;
+      let contribYear = 0, terYear = 0, opsYear = y === 1 ? initialFee : 0;
+      const active = y <= p.stop;
+      const inst = active ? p.periodic / k * (p.adjust ? Math.pow(1 + i, y - 1) : 1) : 0;
+      const instFee = inst > 0 && !p.freePac ? Math.min(inst, p.costOverride != null ? p.costOverride / k : tradeCost(p, inst)) : 0;
+      for (let m = 0; m < 12; m++) {
+        if (m % step === 0 && inst > 0) {
+          bal += inst - instFee; contribYear += inst; opsYear += instFee;
+          const t = (y - 1) * 12 + m;
+          contribPayReal += inst / Math.pow(1 + i, t / 12);
+          if (onFlow) onFlow(t, inst);
+        }
+        bal *= growth(y, m);
+        const fee = bal * feeM;
+        bal -= fee; terYear += fee;
+      }
+      // Imposta di bollo: annua, sul valore del conto a fine anno
+      const bolloYear = Math.max(0, bal) * bollo;
+      bal -= bolloYear;
+      contribPeriodic += contribYear;
+      onYear(y, { bal, startBal, contribYear, contribPeriodic, contribTot: p.initial + contribPeriodic, terYear, opsYear, bolloYear, contribPayReal });
+    }
+  }
+
+  function simulate(p) {
+    const i = p.infl / 100, tax = p.tax / 100;
+    const gM = Math.pow(1 + p.ret / 100, 1 / 12);
+    const rows = [], flows = [];
+    let terTot = 0, opsTot = 0, bolloTot = 0;
+    runPlan(p, () => gM, (y, s) => {
+      terTot += s.terYear; opsTot += s.opsYear; bolloTot += s.bolloYear;
+      const gain = s.bal - s.contribTot;
+      const taxDue = Math.max(0, gain) * tax;
+      const defl = Math.pow(1 + i, y);
+      rows.push({
+        n: y, year: p.start + y - 1, startBal: s.startBal, contribYear: s.contribYear,
+        contribPeriodic: s.contribPeriodic, contribTot: s.contribTot, contribTotReal: s.contribTot / defl,
+        contribPayReal: s.contribPayReal,
+        interestYear: s.bal - s.startBal - s.contribYear, terYear: s.terYear, opsYear: s.opsYear, bolloYear: s.bolloYear,
+        gain, endBal: s.bal, taxDue, net: s.bal - taxDue,
+        netGainReal: (gain - taxDue) / defl, netReal: (s.bal - taxDue) / defl, realBal: s.bal / defl, defl
+      });
+    }, (t, c) => flows.push([t, c]));
+    const last = rows[rows.length - 1];
+    // Rendimento interno (money-weighted) del piano, al netto di costi e tasse
+    const irrNom = irr(flows, p.years * 12, last.net);
+    const irrReal = irrNom == null ? null : (1 + irrNom) / (1 + i) - 1;
+    return { rows, last, terTot, opsTot, bolloTot, contribPeriodic: last.contribPeriodic, initial: p.initial, irrNom, irrReal };
+  }
+
+  // Tasso annuo che rende nullo il valore attuale dei flussi: versamenti (mese t) contro valore finale (mese T).
+  function irr(flows, T, finalValue) {
+    if (!flows.length || finalValue <= 0) return null;
+    const npv = rm => {
+      let v = finalValue / Math.pow(1 + rm, T);
+      for (const [t, c] of flows) v -= c / Math.pow(1 + rm, t);
+      return v;
+    };
+    let lo = -0.5, hi = 0.5;
+    if (npv(lo) * npv(hi) > 0) return null;
+    for (let n = 0; n < 100; n++) {
+      const mid = (lo + hi) / 2;
+      if (npv(lo) * npv(mid) <= 0) hi = mid; else lo = mid;
+    }
+    return Math.pow(1 + (lo + hi) / 2, 12) - 1;
+  }
+
+  // ---------- Scenari (Monte Carlo) ----------
+  // Rendimenti mensili log-normali: la mediana composta è il rendimento medio dei
+  // parametri, la volatilità annua ne fissa la dispersione. Seme fisso, così i
+  // risultati non cambiano a ogni ricalcolo. Inflazione costante.
+  const MC_RUNS = 2000;
+  function mulberry32(a) {
+    return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  }
+  function monteCarlo(p) {
+    const rnd = mulberry32(20260707);
+    const gauss = () => { let u = 0; while (u === 0) u = rnd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rnd()); };
+    const r = p.ret / 100, vol = p.vol / 100, i = p.infl / 100, tax = p.tax / 100;
+    const sigmaY = Math.sqrt(Math.log(1 + Math.pow(vol / (1 + r), 2)));
+    const muM = Math.log(1 + r) / 12, sdM = sigmaY / Math.sqrt(12);
+    const Y = p.years;
+    const real = Array.from({ length: Y }, () => new Float64Array(MC_RUNS));
+    let beatInfl = 0, loss = 0, payRealFinal = 0, contribFinal = 0;
+    for (let run = 0; run < MC_RUNS; run++) {
+      let lastNet = 0, lastReal = 0;
+      runPlan(p, () => Math.exp(muM + sdM * gauss()), (y, s) => {
+        const gain = s.bal - s.contribTot;
+        const net = s.bal - Math.max(0, gain) * tax;
+        const nr = net / Math.pow(1 + i, y);
+        real[y - 1][run] = nr;
+        if (y === Y) { lastNet = net; lastReal = nr; payRealFinal = s.contribPayReal; contribFinal = s.contribTot; }
+      });
+      if (lastReal > payRealFinal) beatInfl++;
+      if (lastNet < contribFinal) loss++;
+    }
+    const pct = (arr, q) => arr[Math.min(arr.length - 1, Math.floor(q * arr.length))];
+    const bands = real.map(a => { a.sort(); return { p10: pct(a, .10), p25: pct(a, .25), p50: pct(a, .50), p75: pct(a, .75), p90: pct(a, .90) }; });
+    return { bands, pBeat: beatInfl / MC_RUNS, pLoss: loss / MC_RUNS, payRealFinal };
+  }
+
+  // ---------- Colori dai token ----------
+  function tok(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+  function alpha(hex, a) {
+    const h = hex.replace('#', '');
+    const n = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16);
+    return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+  }
+
+  // ---------- Chart.js ----------
+  const crosshair = {
+    id: 'crosshair',
+    afterDatasetsDraw(chart) {
+      if (chart.config.type !== 'line') return;
+      const act = chart.tooltip && chart.tooltip.getActiveElements();
+      if (!act || !act.length) return;
+      const x = act[0].element.x, { top, bottom } = chart.chartArea, ctx = chart.ctx;
+      ctx.save();
+      ctx.strokeStyle = tok('--muted'); ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, bottom); ctx.stroke();
+      ctx.restore();
+    }
+  };
+  Chart.register(crosshair);
+  Chart.defaults.animation = false;
+  Chart.defaults.font.family = FONT;
+
+  function baseOpts(yFmt, tooltipExtra) {
+    return {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: Object.assign({
+          backgroundColor: tok('--surface'), titleColor: tok('--ink'), bodyColor: tok('--ink-2'), footerColor: tok('--ink'),
+          borderColor: tok('--line-strong'), borderWidth: 1, padding: 10, boxPadding: 4, usePointStyle: true,
+          titleFont: { family: FONT, weight: '700', size: 13 }, bodyFont: { family: FONT, size: 12.5 }, footerFont: { family: FONT, weight: '700', size: 12.5 }
+        }, tooltipExtra || {})
+      },
+      scales: {
+        x: { grid: { display: false }, border: { color: tok('--line-strong') }, ticks: { color: tok('--muted'), font: { family: FONT, size: 11.5 }, maxRotation: 0, autoSkipPadding: 12 } },
+        y: { grid: { color: tok('--grid') }, border: { display: false }, ticks: { color: tok('--muted'), font: { family: FONT, size: 11.5 }, callback: yFmt, maxTicksLimit: 6 } }
+      }
+    };
+  }
+
+  function areaDataset(label, data, color, fillTarget) {
+    return {
+      label, data, borderColor: color, backgroundColor: alpha(color, 0.78), borderWidth: 2,
+      fill: fillTarget, pointRadius: 0, pointHoverRadius: 5, pointHoverBorderWidth: 2,
+      pointHoverBackgroundColor: color, pointHoverBorderColor: tok('--surface'), tension: 0.25, stack: 's'
+    };
+  }
+
+  let chNominal, chReal, chDonut, chInfl;
+  let compView = 'snap';
+  const resExpand = { costs: false, net: false };
+
+  // Torta senza riquadro: passando su una fetta (o su una riga della legenda)
+  // il centro mostra voce, importo e percentuale; uscendo torna il totale.
+  function drawDonut(canvasId, prev, parts, legendId, center) {
+    const tot = parts.reduce((s, x) => s + Math.max(0, x[1]), 0) || 1;
+    const vEl = $(center.vId), lEl = $(center.lId), legend = $(legendId);
+    legend.innerHTML = parts.map(([l, v, c], k) =>
+      `<li data-k="${k}"><span class="sw" style="background:${c}"></span><span>${l}</span><span class="pct">${fmtPct(v / tot * 100, 0)}</span><span class="amt">${eur(v)}</span></li>`).join('');
+    const show = k => {
+      [...legend.children].forEach((li, j) => li.classList.toggle('on', j === k));
+      if (k == null) { vEl.textContent = center.v; lEl.textContent = center.l; return; }
+      const [l, v] = parts[k];
+      vEl.textContent = eurShort(v);
+      lEl.textContent = `${l} · ${fmtPct(v / tot * 100)}`;
+    };
+    show(null);
+    if (prev) prev.destroy();
+    const chart = new Chart($(canvasId), {
+      type: 'doughnut',
+      data: { labels: parts.map(x => x[0]), datasets: [{ data: parts.map(x => Math.max(0, x[1])), backgroundColor: parts.map(x => x[2]), borderColor: tok('--surface'), borderWidth: 2, hoverOffset: 6 }] },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '66%', layout: { padding: 8 },
+        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+        onHover: (e, els) => show(els.length ? els[0].index : null)
+      }
+    });
+    $(canvasId).onmouseleave = () => show(null);
+    legend.onmouseover = e => {
+      const li = e.target.closest('li'); if (!li) return;
+      const k = +li.dataset.k;
+      chart.setActiveElements([{ datasetIndex: 0, index: k }]); chart.update('none'); show(k);
+    };
+    legend.onmouseleave = () => { chart.setActiveElements([]); chart.update('none'); show(null); };
+    return chart;
+  }
+  function stackedChart(canvas, labels, a, b, labelA, labelB, footerLabel) {
+    const cA = tok('--s-contrib'), cB = tok('--s-interest');
+    return new Chart(canvas, {
+      type: 'line',
+      data: { labels, datasets: [areaDataset(labelA, a, cA, 'origin'), areaDataset(labelB, b, cB, '-1')] },
+      options: Object.assign(baseOpts(v => eurShort(v), {
+        callbacks: {
+          title: items => 'Fine ' + items[0].label + ' · anno ' + (items[0].dataIndex + 1),
+          label: c => ' ' + c.dataset.label + ': ' + eur(c.raw),
+          footer: items => footerLabel + ': ' + eur(items.reduce((s, it) => s + it.raw, 0))
+        }
+      }), { scales: Object.assign(baseOpts(v => eurShort(v)).scales, { y: Object.assign(baseOpts(v => eurShort(v)).scales.y, { stacked: true, beginAtZero: true }) }) })
+    });
+  }
+
+  // ---------- Render ----------
+  function renderParamHints(p) {
+    const lead = p.lead;
+    $('h-monthly').textContent = lead === 'annual' ? 'Calcolato dall\u2019annuo' : 'Inserito';
+    $('h-annual').textContent = lead === 'monthly' ? 'Calcolato dal mensile' : 'Inserito';
+    $('w-monthly').classList.toggle('auto', lead === 'annual');
+    $('w-annual').classList.toggle('auto', lead === 'monthly');
+    const inst = p.periodic / p.freq;
+    $('h-freq').textContent = p.freq === 12 ? 'Un versamento a inizio mese' : `${p.freq} versament${p.freq === 1 ? 'o' : 'i'} da ${eur2(inst)}`;
+    const instFee = p.freePac ? 0 : tradeCost(p, inst);
+    $('o-fee-per').textContent = `Costo per versamento ${FREQ_LABEL[p.freq]}`;
+    $('o-fee-per-v').textContent = inst > 0 ? eur2(instFee) + (p.freePac ? ' · PAC gratuito' : '') : '–';
+    $('o-fee-init').textContent = p.initial > 0 ? eur2(tradeCost(p, p.initial)) : '–';
+    const calcAnnual = round2(instFee * p.freq);
+    const costInput = $('p-cost');
+    costInput.disabled = p.freePac;
+    if (p.freePac) {
+      costInput.value = 0;
+      $('h-cost').textContent = 'Azzerato: PAC gratuito';
+      $('w-cost').classList.add('auto');
+    } else if (state.costOverride == null) {
+      if (document.activeElement !== costInput) costInput.value = calcAnnual;
+      $('h-cost').innerHTML = 'Calcolato: per versamento × ' + p.freq;
+      $('w-cost').classList.add('auto');
+    } else {
+      $('h-cost').innerHTML = `Inserito a mano (calcolo: ${eur2(calcAnnual)}) · <button type="button" class="btn" id="cost-reset">usa calcolo</button>`;
+      $('w-cost').classList.remove('auto');
+    }
+  }
+
+  let chMc;
+  function renderScenarios(p, sim) {
+    const mc = monteCarlo(p);
+    const B = mc.bands, last = B[B.length - 1], rows = sim.rows;
+    const tile = (v, l, cls) => `<div class="avg${cls ? ' ' + cls : ''}"><span class="v">${v}</span><span class="l">${l}</span></div>`;
+    const pctTxt = v => fmtPct(v * 100, 0);
+    $('mc-stats').innerHTML =
+      tile(eur(last.p10), 'Sfavorevole: 1 caso su 10 va peggio') +
+      tile(eur(last.p50), 'Mediano', 'mid') +
+      tile(eur(last.p90), 'Favorevole: 1 caso su 10 va meglio') +
+      tile(pctTxt(mc.pBeat), 'Probabilità di battere l\u2019inflazione') +
+      tile(pctTxt(mc.pLoss), 'Probabilità di chiudere sotto il versato nominale');
+    $('mc-note').textContent = `"Battere l'inflazione" significa finire, al netto di costi e tasse, sopra ${eur(mc.payRealFinal)}: la somma dei versamenti espressi ciascuno in euro di oggi. Rendimenti mensili casuali log-normali con mediana ${fmtPct(p.ret)} e volatilità ${fmtPct(p.vol, 0)}; l'inflazione resta costante al ${fmtPct(p.infl)}.`;
+
+    const labels = rows.map(r => String(r.year));
+    const c = tok('--s-contrib'), b1 = tok('--band-1'), b2 = tok('--band-2'), ink = tok('--ink-2');
+    const edge = (label, data, fill, bg, order) => ({ label, data, fill, order, backgroundColor: bg, borderColor: 'transparent', borderWidth: 0, pointRadius: 0, pointHoverRadius: 3, pointHoverBackgroundColor: c, tension: 0.25 });
+    const ds = [
+      edge('10° percentile', B.map(x => x.p10), false, 'transparent', 4),
+      edge('90° percentile', B.map(x => x.p90), '-1', b1, 4),
+      edge('25° percentile', B.map(x => x.p25), false, 'transparent', 3),
+      edge('75° percentile', B.map(x => x.p75), '-1', b2, 3),
+      { label: 'Mediana', order: 1, data: B.map(x => x.p50), borderColor: c, backgroundColor: c, borderWidth: 2, pointRadius: 0, pointHoverRadius: 5, pointHoverBorderColor: tok('--surface'), pointHoverBorderWidth: 2, tension: 0.25, fill: false },
+      { label: 'Versato in euro di oggi', order: 0, data: rows.map(r => r.contribPayReal), borderColor: ink, backgroundColor: ink, borderWidth: 1.5, borderDash: [5, 4], pointRadius: 0, pointHoverRadius: 4, tension: 0, fill: false }
+    ];
+    if (chMc) chMc.destroy();
+    const opts = baseOpts(v => eurShort(v), {
+      itemSort: (a, b) => b.raw - a.raw,
+      callbacks: {
+        title: items => 'Fine ' + items[0].label + ' · anno ' + (items[0].dataIndex + 1),
+        label: x => ' ' + x.dataset.label + ': ' + eur(x.raw)
+      }
+    });
+    opts.scales.y.beginAtZero = true;
+    chMc = new Chart($('c-mc'), { type: 'line', data: { labels, datasets: ds }, options: opts });
+  }
+
+  function render() {
+    const p = readParams();
+    saveParams(p);
+    renderParamHints(p);
+    const sim = simulate(p);
+    const noCost = simulate(Object.assign({}, p, { ter: 0, feePct: 0, feeMin: 0, costOverride: 0, bolloOn: false }));
+    $('p-bollo').disabled = !p.bolloOn;
+    const L = sim.last, rows = sim.rows;
+    const contribTot = L.contribTot;
+    const yearsLabel = p.years === 1 ? '1 anno' : p.years + ' anni';
+    const endYear = p.start + p.years - 1;
+
+    // KPI
+    $('k-contrib').textContent = eur(contribTot);
+    $('k-contrib-s').textContent = 'in ' + yearsLabel + (p.stop < p.years ? ` · versamenti fino al ${p.start + Math.max(p.stop, 0) - 1}` : '');
+    $('k-net').textContent = eur(L.net);
+    $('k-net-s').textContent = 'nominale, fine ' + endYear + ' · ×' + (contribTot > 0 ? (L.net / contribTot).toLocaleString('it-IT', { maximumFractionDigits: 2 }) : '–') + ' il versato';
+    $('k-real').textContent = eur(L.netReal);
+    $('k-real-s').textContent = 'in euro di oggi · ×' + (contribTot > 0 ? (L.netReal / contribTot).toLocaleString('it-IT', { maximumFractionDigits: 2 }) : '–') + ' il versato';
+    $('k-irr').textContent = sim.irrReal == null ? '–' : fmtPct(sim.irrReal * 100);
+    $('k-irr-s').textContent = sim.irrNom == null ? 'non calcolabile' : `annuo, netto di costi e tasse · nominale ${fmtPct(sim.irrNom * 100)}`;
+    $('k-irr').classList.toggle('neg', sim.irrReal != null && sim.irrReal < 0);
+
+    if ($('det-mc').open) renderScenarios(p, sim);
+
+    // Tabella risultati
+    const costTot = sim.terTot + sim.opsTot + sim.bolloTot;
+    const minus = v => `<span class="minus">−${eur(v).replace('-', '')}</span>`;
+    const row = (k, v, c) => `<tr class="${c || ''}"><th scope="row">${k}</th><td>${v}</td></tr>`;
+    const grp = (g, k, v, c) => `<tr class="${c || ''}"><th scope="row"><button type="button" class="exp" data-g="${g}" aria-expanded="${resExpand[g]}">${k}</button></th><td>${v}</td></tr>`;
+    const det = (g, k, v) => resExpand[g] ? row(k, v, 'det') : '';
+    const neg = v => v > 0 ? minus(v) : eur(0);
+    $('rtable').tBodies[0].innerHTML =
+      row('Versamento iniziale', eur(sim.initial)) +
+      row('Versamenti periodici', eur(sim.contribPeriodic)) +
+      row('Totale versamenti', eur(contribTot), 'sum sep') +
+      grp('costs', `Costi totali <span class="pct-of">${contribTot > 0 ? fmtPct(costTot / contribTot * 100) + ' del versato' : ''}</span>`, neg(costTot), 'sum') +
+      det('costs', 'Costi fondi (TER)', neg(sim.terTot)) +
+      det('costs', 'Costi operazioni', neg(sim.opsTot)) +
+      det('costs', 'Imposta di bollo', neg(sim.bolloTot)) +
+      row('Interessi maturati, netto costi', eur(L.gain), 'sep') +
+      row('Bilancio finale', eur(L.endBal), 'sum sep') +
+      grp('net', 'Bilancio finale tassato e deflazionato', eur(L.netReal), 'key') +
+      det('net', 'Bilancio finale deflazionato', eur(L.realBal)) +
+      det('net', 'Tasse al prelievo', neg(L.taxDue)) +
+      det('net', 'Bilancio finale tassato', eur(L.net));
+    const eurToday = 1 / L.defl;
+    const impact = noCost.last.endBal - L.endBal;
+    const costNote = impact > 0.5
+      ? `Senza costi il bilancio finale sarebbe ${eur(noCost.last.endBal)}: i costi lo riducono di ${eur(impact)}, compreso il rendimento che quei soldi avrebbero prodotto (${fmtPct(impact / noCost.last.endBal * 100)} del bilancio).`
+      : '';
+    const inflNote = p.infl !== 0
+      ? `Con inflazione al ${fmtPct(p.infl)}, 1 € di oggi a fine ${endYear} comprerà quanto ${eurToday.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} € di oggi. I valori deflazionati sono espressi in potere d'acquisto attuale.`
+      : 'Con inflazione a zero i valori deflazionati coincidono con quelli nominali.';
+    $('r-note').innerHTML = [costNote, inflNote].filter(Boolean).map(t => `<span>${t}</span>`).join('');
+
+    // Composizione: stesso totale (valore lordo prodotto = bilancio finale + costi) visto in due casi
+    const cInit = tok('--s-initial'), cContr = tok('--s-contrib'), cInt = tok('--s-interest'), cCost = tok('--s-cost'), cInfl = tok('--s-infl'), cTax = tok('--s-tax');
+    const sell = compView === 'sell';
+    chDonut = drawDonut('c-donut', chDonut, sell ? [
+      ['Versamenti, in euro di oggi', L.contribTotReal, cContr],
+      ['Interessi netti, in euro di oggi', Math.max(0, L.netGainReal), cInt],
+      ['Costi', costTot, cCost],
+      ['Persi per inflazione', Math.max(0, L.net - L.netReal), cInfl],
+      ['Tasse', L.taxDue, cTax]
+    ] : [
+      ['Versamento iniziale', sim.initial, cInit],
+      ['Versamenti periodici', sim.contribPeriodic, cContr],
+      ['Interessi netti', Math.max(0, L.gain), cInt],
+      ['Costi', costTot, cCost]
+    ], 'donut-legend', { vId: 'donut-total', lId: 'donut-total-l', v: eurShort(sell ? L.netReal : L.endBal), l: sell ? 'netto, in euro di oggi' : 'bilancio finale' });
+    $('comp-sub').textContent = sell
+      ? `Se a fine ${endYear} vendi tutto: quanto resta in mano in euro di oggi, e quanto va a costi, inflazione e tasse.`
+      : `A fine ${endYear}, capitale ancora investito: valori nominali, con i costi già sostenuti.`;
+    $('comp-snap').setAttribute('aria-pressed', String(!sell));
+    $('comp-sell').setAttribute('aria-pressed', String(sell));
+
+    // Grafici proiezione
+    const labels = rows.map(r => String(r.year));
+    if (chNominal) chNominal.destroy();
+    chNominal = stackedChart($('c-nominal'), labels, rows.map(r => r.contribTot), rows.map(r => r.gain), 'Versamenti', 'Interessi', 'Bilancio');
+    if (chReal) chReal.destroy();
+    chReal = stackedChart($('c-real'), labels, rows.map(r => r.contribTotReal), rows.map(r => r.netGainReal), 'Versamenti', 'Interessi netti', 'Netto reale');
+
+    // Tabella proiezione
+    const cols = [
+      ['Anno n.', r => r.n, 'th'], ['Anno', r => r.year, 'th'],
+      ['Montante inizio anno', r => eur(r.startBal)],
+      ['Versamenti nell’anno', r => eur(r.contribYear)],
+      ['Cumulativo versamenti', r => eur(r.contribTot)],
+      ['Cumulativo versamenti deflazionato', r => eur(r.contribTotReal)],
+      ['Interessi nell’anno', r => eur(r.interestYear)],
+      ['TER nell’anno', r => eur(r.terYear)],
+      ['Commissioni nell’anno', r => eur(r.opsYear)],
+      ['Bollo nell’anno', r => eur(r.bolloYear)],
+      ['Cumulativo interessi', r => eur(r.gain)],
+      ['Montante fine anno', r => eur(r.endBal), 'em'],
+      ['Tasse se liquidato', r => eur(r.taxDue)],
+      ['Netto tassato', r => eur(r.net)],
+      ['Netto tassato e deflazionato', r => eur(r.netReal), 'em']
+    ];
+    const pt = $('ptable');
+    pt.tHead.innerHTML = '<tr>' + cols.map(c => `<th scope="col">${c[0]}</th>`).join('') + '</tr>';
+    pt.tBodies[0].innerHTML = rows.map(r => '<tr>' + cols.map(c => c[2] === 'th' ? `<th scope="row">${c[1](r)}</th>` : `<td${c[2] ? ' class="' + c[2] + '"' : ''}>${c[1](r)}</td>`).join('') + '</tr>').join('');
+    const sumC = rows.reduce((s, r) => s + r.contribYear, 0), sumI = rows.reduce((s, r) => s + r.interestYear, 0), sumT = sim.terTot, sumO = sim.opsTot;
+    pt.tFoot.innerHTML = `<tr><th scope="row" colspan="2" style="text-align:left">Totale</th><td></td><td>${eur(sumC)}</td><td>${eur(L.contribTot)}</td><td>${eur(L.contribTotReal)}</td><td>${eur(sumI)}</td><td>${eur(sumT)}</td><td>${eur(sumO)}</td><td>${eur(sim.bolloTot)}</td><td>${eur(L.gain)}</td><td>${eur(L.endBal)}</td><td>${eur(L.taxDue)}</td><td>${eur(L.net)}</td><td>${eur(L.netReal)}</td></tr>`;
+  }
+
+  // ---------- Inflazione storica ----------
+  function geoMean(arr) { return (Math.pow(arr.reduce((p, v) => p * (1 + v / 100), 1), 1 / arr.length) - 1) * 100; }
+  function renderInflationStatic() {
+    const lastYear = INFL[INFL.length - 1][0];
+    const spans = [10, 20, 30, INFL.length];
+    const avgs = spans.map(n => ({ n, v: geoMean(INFL.slice(-n).map(x => x[1])), label: n === INFL.length ? `Dal ${INFL[0][0]}` : `Ultimi ${n} anni` }));
+    $('avgs').innerHTML = avgs.map(a => `<div class="avg"><span class="v">${fmtPct(a.v)}</span><span class="l">${a.label} (${lastYear - a.n + 1}–${lastYear})</span></div>`).join('');
+    $('infl-chips').innerHTML = avgs.map(a => `<button type="button" class="chip" data-v="${a.v.toFixed(1)}" title="Media composta ${lastYear - a.n + 1}–${lastYear}">${a.label.replace('Ultimi ', '')}: ${fmtPct(a.v)}</button>`).join('');
+    $('infl-chips').addEventListener('click', e => {
+      const b = e.target.closest('.chip'); if (!b) return;
+      $('p-infl').value = b.dataset.v; render();
+    });
+    $('itable').tBodies[0].innerHTML = INFL.slice().reverse().map(([y, v]) => `<tr><th scope="row">${y}</th><td>${fmtPct(v)}</td></tr>`).join('');
+  }
+  function renderInflationChart() {
+    const labels = INFL.map(x => String(x[0]));
+    const annual = INFL.map(x => x[1]);
+    const mov = INFL.map((x, k) => k < 4 ? null : annual.slice(k - 4, k + 1).reduce((s, v) => s + v, 0) / 5);
+    const cA = tok('--s-annual'), cM = tok('--s-avg');
+    if (chInfl) chInfl.destroy();
+    chInfl = new Chart($('c-infl'), {
+      type: 'line',
+      data: { labels, datasets: [
+        { label: 'Annua', data: annual, borderColor: cA, backgroundColor: cA, borderWidth: 2, pointRadius: 0, pointHoverRadius: 5, pointHoverBorderColor: tok('--surface'), pointHoverBorderWidth: 2, tension: 0.3 },
+        { label: 'Media mobile 5 anni', data: mov, borderColor: cM, backgroundColor: cM, borderWidth: 2, pointRadius: 0, pointHoverRadius: 5, pointHoverBorderColor: tok('--surface'), pointHoverBorderWidth: 2, tension: 0.3, spanGaps: false }
+      ] },
+      options: baseOpts(v => fmtPct(v, 0), { callbacks: { label: c => c.raw == null ? null : ' ' + c.dataset.label + ': ' + fmtPct(c.raw) } })
+    });
+  }
+
+  // =====================================================================
+  // Schede Obiettivo e Prelievo
+  // =====================================================================
+
+  // ---------- Pannelli parametri generati da uno schema ----------
+  const FREQ_OPTS = [['12', 'Mensile'], ['4', 'Trimestrale'], ['2', 'Semestrale'], ['1', 'Annuale']];
+  const SAFETY_OPTS = [['base', 'Rendimento costante'], ['75', 'Prudente: 3 scenari su 4'], ['90', 'Molto prudente: 9 su 10']];
+  const costAdv = (feeSub, opsLabel) => [
+    { k: 'ter', t: 'num', label: 'Spese annue fondi (TER)', hint: 'Prelevate dal fondo sul capitale', unit: '%', step: 0.05, min: 0 },
+    { t: 'sep' }, { t: 'sub', label: 'Imposta di bollo' },
+    { k: 'bolloOn', t: 'chk', label: 'Includi imposta di bollo', hint: 'Dovuta sul conto titoli in Italia' },
+    { k: 'bollo', t: 'num', label: 'Aliquota annua', hint: 'Sul valore del conto a fine anno', unit: '%', step: 0.05, min: 0 },
+    { t: 'sep' }, { t: 'sub', label: feeSub },
+    { k: 'feePct', t: 'num', label: 'Commissione per operazione', unit: '%', step: 0.01, min: 0 },
+    { k: 'feeMin', t: 'num', label: 'Minimo per operazione', unit: '€', step: 0.5, min: 0 },
+    { k: 'feeMax', t: 'num', label: 'Massimo per operazione', hint: '0 = nessun massimo', unit: '€', step: 1, min: 0 },
+    { k: 'feeOps', t: 'num', label: opsLabel, step: 1, min: 1 }
+  ];
+
+  const OBJ_SCHEMA = [
+    { title: 'Obiettivo', fields: [
+      { k: 'target', t: 'num', label: 'Cifra da raggiungere', hint: 'Al netto delle tasse', unit: '€', step: 1000, min: 0 },
+      { k: 'real', t: 'chk', label: 'In euro di oggi', hint: 'Tiene conto dell’inflazione' },
+      { k: 'solve', t: 'sel', label: 'Cosa calcolare', opts: [['periodic', 'Versamento mensile'], ['initial', 'Versamento iniziale'], ['years', 'Durata']] },
+      { k: 'safety', t: 'sel', label: 'Margine di sicurezza', hint: 'In quanti scenari di mercato l’obiettivo va raggiunto', opts: SAFETY_OPTS }
+    ] },
+    { title: 'Versamenti', fields: [
+      { k: 'initial', t: 'num', label: 'Versamento iniziale', unit: '€', step: 500, min: 0 },
+      { k: 'monthly', t: 'num', label: 'Versamento mensile', unit: '€', step: 10, min: 0 }
+    ], adv: [
+      { k: 'freq', t: 'sel', label: 'Frequenza versamenti periodici', opts: FREQ_OPTS },
+      { k: 'adjust', t: 'chk', label: 'Adegua i versamenti periodici all’inflazione', hint: 'Crescono ogni anno del tasso d’inflazione' },
+      { k: 'freePac', t: 'chk', label: 'PAC gratuito', hint: 'Nessuna commissione sui versamenti periodici' }
+    ] },
+    { title: 'Rendimento e costi', fields: [
+      { k: 'ret', t: 'num', label: 'Rendimento medio annuo', hint: 'Lordo, prima dei costi', unit: '%', step: 0.1 },
+      { k: 'tax', t: 'num', label: 'Tassazione al prelievo', hint: 'Sulle plusvalenze', unit: '%', step: 0.5, min: 0, max: 100 }
+    ], adv: [
+      { k: 'vol', t: 'num', label: 'Volatilità annua', hint: 'Per margine di sicurezza e probabilità', unit: '%', step: 1, min: 0, max: 60 },
+      { t: 'sep' }
+    ].concat(costAdv('Commissioni di acquisto', 'Operazioni per versamento')) },
+    { title: 'Inflazione', fields: [
+      { k: 'infl', t: 'num', label: 'Inflazione media', unit: '%', step: 0.1 }
+    ] },
+    { title: 'Orizzonte', fields: [
+      { k: 'start', t: 'num', label: 'Anno inizio', step: 1 },
+      { k: 'years', t: 'num', label: 'Durata', unit: 'anni', step: 1, min: 1, max: 60 }
+    ] }
+  ];
+  const OBJ_DEFAULTS = {
+    target: 100000, real: true, solve: 'periodic', safety: 'base',
+    initial: 10000, monthly: 300, freq: '12', adjust: false, freePac: true,
+    ret: 7, tax: 26, vol: 15, ter: 0.2, bolloOn: true, bollo: 0.2, feePct: 0.19, feeMin: 1.5, feeMax: 18, feeOps: 1,
+    infl: 2, start: 2026, years: 18
+  };
+
+  const WD_SCHEMA = [
+    { title: 'Capitale', fields: [
+      { k: 'capital', t: 'num', label: 'Capitale all’inizio dei prelievi', unit: '€', step: 5000, min: 0 },
+      { k: 'basis', t: 'num', label: 'Di cui versato', hint: 'Costo fiscale: le tasse si pagano solo sul guadagno', unit: '€', step: 5000, min: 0 }
+    ] },
+    { title: 'Prelievi', fields: [
+      { k: 'solve', t: 'sel', label: 'Cosa calcolare', opts: [['duration', 'Quanto dura il capitale'], ['amount', 'Prelievo sostenibile']] },
+      { k: 'withdraw', t: 'num', label: 'Prelievo mensile netto', hint: 'Quanto ricevi, ai prezzi di inizio prelievi', unit: '€', step: 50, min: 0 },
+      { k: 'years', t: 'num', label: 'Durata desiderata', unit: 'anni', step: 1, min: 1, max: 60 },
+      { k: 'safety', t: 'sel', label: 'Margine di sicurezza', hint: 'In quanti scenari il capitale deve durare', opts: SAFETY_OPTS }
+    ], adv: [
+      { k: 'freq', t: 'sel', label: 'Frequenza prelievi', opts: FREQ_OPTS },
+      { k: 'indexed', t: 'chk', label: 'Adegua i prelievi all’inflazione', hint: 'Mantengono lo stesso potere d’acquisto' }
+    ] },
+    { title: 'Rendimento e costi', fields: [
+      { k: 'ret', t: 'num', label: 'Rendimento medio annuo', hint: 'Lordo, prima dei costi', unit: '%', step: 0.1 },
+      { k: 'tax', t: 'num', label: 'Tassazione sui guadagni', unit: '%', step: 0.5, min: 0, max: 100 }
+    ], adv: [
+      { k: 'vol', t: 'num', label: 'Volatilità annua', hint: 'Per margine di sicurezza e probabilità', unit: '%', step: 1, min: 0, max: 60 },
+      { t: 'sep' }
+    ].concat(costAdv('Commissioni di vendita', 'Operazioni per prelievo')) },
+    { title: 'Inflazione', fields: [
+      { k: 'infl', t: 'num', label: 'Inflazione media', unit: '%', step: 0.1 }
+    ] },
+    { title: 'Orizzonte', fields: [
+      { k: 'start', t: 'num', label: 'Anno inizio prelievi', step: 1 }
+    ] }
+  ];
+  const WD_DEFAULTS = {
+    capital: 300000, basis: 150000, solve: 'duration', withdraw: 1200, years: 25, safety: 'base',
+    freq: '12', indexed: true, ret: 5, tax: 26, vol: 10, ter: 0.2, bolloOn: true, bollo: 0.2,
+    feePct: 0.19, feeMin: 1.5, feeMax: 18, feeOps: 1, infl: 2, start: 2056
+  };
+
+  function fieldHtml(px, f) {
+    if (f.t === 'sep') return '<hr class="adv-sep">';
+    if (f.t === 'sub') return `<span class="adv-sub">${f.label}</span>`;
+    const id = px + f.k;
+    const hint = `<span class="hint" id="${id}-h">${f.hint || ''}</span>`;
+    if (f.t === 'chk') return `<div class="field"><label for="${id}">${f.label}${hint}</label><div class="toggle"><input id="${id}" type="checkbox"></div></div>`;
+    if (f.t === 'sel') return `<div class="field stack"><label for="${id}">${f.label}${hint}</label><div class="inp"><select id="${id}">${f.opts.map(o => `<option value="${o[0]}">${o[1]}</option>`).join('')}</select></div></div>`;
+    const attrs = ['step', 'min', 'max'].filter(a => f[a] != null).map(a => `${a}="${f[a]}"`).join(' ');
+    return `<div class="field"><label for="${id}">${f.label}${hint}</label><div class="inp" id="${id}-w"><input id="${id}" type="number" ${attrs}>${f.unit ? `<span class="unit">${f.unit}</span>` : ''}</div></div>`;
+  }
+  function buildPanel(el, px, schema) {
+    el.innerHTML = '<h2>Parametri</h2>' + schema.map(g =>
+      `<div class="pgroup"><span class="eyebrow">${g.title}</span>${g.fields.map(f => fieldHtml(px, f)).join('')}` +
+      (g.adv ? `<details class="adv"><summary>Avanzate</summary><div class="adv-body">${g.adv.map(f => fieldHtml(px, f)).join('')}</div></details>` : '') +
+      '</div>').join('') +
+      `<button class="btn" id="${px}reset" type="button">Ripristina valori di esempio</button>`;
+  }
+  const schemaFields = schema => schema.flatMap(g => g.fields.concat(g.adv || [])).filter(f => f.k);
+  function readPanel(px, schema, defs) {
+    const out = {};
+    for (const f of schemaFields(schema)) {
+      const el = $(px + f.k);
+      if (f.t === 'chk') out[f.k] = el.checked;
+      else if (f.t === 'sel') out[f.k] = el.value;
+      else {
+        const v = parseFloat(el.value);
+        let x = Number.isFinite(v) ? v : (el.disabled ? defs[f.k] : 0);
+        if (f.min != null) x = Math.max(f.min, x);
+        if (f.max != null) x = Math.min(f.max, x);
+        out[f.k] = x;
+      }
+    }
+    return out;
+  }
+  function writePanel(px, schema, vals) {
+    for (const f of schemaFields(schema)) {
+      const el = $(px + f.k), v = vals[f.k];
+      if (f.t === 'chk') el.checked = !!v; else el.value = v;
+    }
+  }
+  function loadTab(key, storeKey, defs) {
+    const emb = embeddedParams();
+    if (emb && emb[key]) return Object.assign({}, defs, emb[key]);
+    if (!emb) { try { const s = localStorage.getItem(storeKey); if (s) return Object.assign({}, defs, JSON.parse(s)); } catch (e) {} }
+    return Object.assign({}, defs);
+  }
+  function saveTab(storeKey, v) { try { localStorage.setItem(storeKey, JSON.stringify(v)); } catch (e) {} }
+  const debounce = (fn, ms) => { let t; return () => { clearTimeout(t); t = setTimeout(fn, ms); }; };
+
+  // Il campo calcolato mostra il risultato ed è bloccato
+  function setSolved(px, keys, solvedKey, value) {
+    for (const k of keys) {
+      const el = $(px + k), w = $(px + k + '-w');
+      const on = k === solvedKey;
+      el.disabled = on;
+      if (w) w.classList.toggle('solved', on);
+      if (on) el.value = value == null ? '' : value;
+    }
+  }
+
+  // ---------- Statistica ----------
+  const RUNS_SOLVE = 500, RUNS_SHOW = 1000;
+  function makeGauss(seed) {
+    const rnd = mulberry32(seed);
+    return () => { let u = 0; while (u === 0) u = rnd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rnd()); };
+  }
+  function lnParams(p) {
+    const r = p.ret / 100, vol = p.vol / 100;
+    const sigmaY = Math.sqrt(Math.log(1 + Math.pow(vol / (1 + r), 2)));
+    return { muM: Math.log(1 + r) / 12, sdM: sigmaY / Math.sqrt(12) };
+  }
+  // Fattori di crescita mensili casuali, generati una volta e riusati finché
+  // rendimento, volatilità e lunghezza non cambiano (numeri casuali comuni).
+  const factorCache = {};
+  function factors(seed, p, runs, months) {
+    const { muM, sdM } = lnParams(p), key = [seed, muM, sdM, runs, months].join('|');
+    if (factorCache[seed] && factorCache[seed].key === key) return factorCache[seed].f;
+    const gauss = makeGauss(seed), f = new Float64Array(runs * months);
+    for (let n = 0; n < f.length; n++) f[n] = Math.exp(muM + sdM * gauss());
+    factorCache[seed] = { key, f };
+    return f;
+  }
+  const quant = (arr, q) => { const a = Float64Array.from(arr).sort(); return a[Math.min(a.length - 1, Math.max(0, Math.floor(q * a.length)))]; };
+
+  // =====================================================================
+  // OBIETTIVO
+  // =====================================================================
+  const OBJ_KEY = 'calc-obiettivo-v1';
+  function objPlan(v, over) {
+    const o = Object.assign({}, v, over || {});
+    return {
+      initial: o.initial, periodic: o.monthly * 12, freq: parseInt(o.freq, 10) || 12, adjust: o.adjust, freePac: o.freePac,
+      ret: o.ret, tax: o.tax, ter: o.ter, bollo: o.bollo, bolloOn: o.bolloOn,
+      feePct: o.feePct, feeMin: o.feeMin, feeMax: o.feeMax, feeOps: Math.max(1, Math.round(o.feeOps)), costOverride: null,
+      infl: o.infl, start: Math.round(o.start), years: Math.round(o.years), stop: Math.round(o.years), vol: o.vol
+    };
+  }
+  // Valori per anno della grandezza obiettivo (netto tasse, nominale o in euro di oggi)
+  function accMetricPath(p, real, growth) {
+    const i = p.infl / 100, tax = p.tax / 100, out = [];
+    runPlan(p, growth, (y, s) => {
+      const net = s.bal - Math.max(0, s.bal - s.contribTot) * tax;
+      out.push(real ? net / Math.pow(1 + i, y) : net);
+    });
+    return out;
+  }
+  function accDet(p, real) { const g = Math.pow(1 + p.ret / 100, 1 / 12); return accMetricPath(p, real, () => g); }
+  // Matrice [anno][scenario] con numeri casuali comuni (stesso seme a ogni chiamata)
+  function accMC(p, real, runs) {
+    const Y = p.years, M = Array.from({ length: Y }, () => new Float64Array(runs));
+    const F = factors(9091, p, runs, Y * 12);
+    for (let r = 0; r < runs; r++) {
+      let n = r * Y * 12;
+      const path = accMetricPath(p, real, () => F[n++]);
+      for (let y = 0; y < Y; y++) M[y][r] = path[y];
+    }
+    return M;
+  }
+  // Valore finale "garantito" al livello di sicurezza scelto
+  function objFinal(p, v) {
+    if (v.safety === 'base') { const a = accDet(p, v.real); return a[a.length - 1]; }
+    const M = accMC(p, v.real, RUNS_SOLVE);
+    return quant(M[M.length - 1], 1 - parseInt(v.safety, 10) / 100);
+  }
+  function bisect(f, target, hiStart, maxHi) {
+    if (f(0) >= target) return 0;
+    let lo = 0, hi = hiStart;
+    while (f(hi) < target) { lo = hi; hi *= 2; if (hi > maxHi) return null; }
+    for (let n = 0; n < 32; n++) {
+      const mid = (lo + hi) / 2;
+      if (f(mid) >= target) hi = mid; else lo = mid;
+      if (hi - lo < 0.5) break;
+    }
+    return hi;
+  }
+  function objSolve(v) {
+    const T = v.target;
+    if (v.solve === 'periodic') {
+      const x = bisect(m => objFinal(objPlan(v, { monthly: m }), v), T, 100, 1e6);
+      return { value: x, plan: x == null ? null : objPlan(v, { monthly: x }) };
+    }
+    if (v.solve === 'initial') {
+      const x = bisect(a => objFinal(objPlan(v, { initial: a }), v), T, 10000, 1e9);
+      return { value: x, plan: x == null ? null : objPlan(v, { initial: x }) };
+    }
+    // Durata: primo anno in cui l'obiettivo è raggiunto
+    const MAXY = 60, long = objPlan(v, { years: MAXY });
+    let path;
+    if (v.safety === 'base') path = accDet(long, v.real);
+    else { const q = 1 - parseInt(v.safety, 10) / 100; path = accMC(long, v.real, RUNS_SOLVE).map(a => quant(a, q)); }
+    const y = path.findIndex(x => x >= T);
+    return { value: y < 0 ? null : y + 1, plan: y < 0 ? null : objPlan(v, { years: y + 1 }) };
+  }
+
+  let chObj;
+  function renderObj() {
+    const v = readPanel('o-', OBJ_SCHEMA, OBJ_DEFAULTS);
+    saveTab(OBJ_KEY, v);
+    $('o-safety-h').textContent = v.safety === 'base' ? 'Senza oscillazioni: 1 scenario su 2 fa meglio' : `Usa la volatilità (${fmtPct(v.vol, 0)}) delle Avanzate`;
+    $('o-bollo').disabled = !v.bolloOn;
+    const res = objSolve(v);
+    const unitLbl = v.real ? 'in euro di oggi' : 'nominali';
+    const shown = { periodic: res.value == null ? null : Math.ceil(res.value), initial: res.value == null ? null : Math.ceil(res.value / 10) * 10, years: res.value };
+    setSolved('o-', ['monthly', 'initial', 'years'], v.solve === 'periodic' ? 'monthly' : v.solve, shown[v.solve]);
+
+    const lbl = { periodic: 'Versamento mensile', initial: 'Versamento iniziale', years: 'Durata necessaria' }[v.solve];
+    $('ok-main-l').textContent = lbl;
+    if (!res.plan) {
+      $('ok-main').textContent = 'Non raggiungibile';
+      $('ok-main-s').textContent = v.solve === 'years' ? 'Non entro 60 anni con questi versamenti' : 'Con questi parametri l’obiettivo è fuori portata';
+      ['ok-contrib', 'ok-final', 'ok-prob'].forEach(id => { $(id).textContent = '–'; $(id + '-s').innerHTML = '&nbsp;'; });
+      if (chObj) { chObj.destroy(); chObj = null; }
+      $('o-note').textContent = '';
+      return;
+    }
+    const plan = res.plan;
+    const freqN = plan.freq;
+    if (v.solve === 'periodic') {
+      $('ok-main').textContent = eur(shown.periodic);
+      $('ok-main-s').textContent = freqN === 12 ? `al mese per ${plan.years} anni (${eur(shown.periodic * 12)} l’anno)` : `al mese: ${eur(shown.periodic * 12 / freqN)} a rata ${FREQ_LABEL[freqN]}`;
+    } else if (v.solve === 'initial') {
+      $('ok-main').textContent = eur(shown.initial);
+      $('ok-main-s').textContent = `più ${eur(v.monthly)} al mese per ${plan.years} anni`;
+    } else {
+      $('ok-main').textContent = plan.years === 1 ? '1 anno' : plan.years + ' anni';
+      $('ok-main-s').textContent = `obiettivo raggiunto a fine ${plan.start + plan.years - 1}`;
+    }
+    const sim = simulate(plan), L = sim.last;
+    $('ok-contrib').textContent = eur(L.contribTot);
+    $('ok-contrib-s').textContent = 'in ' + plan.years + ' anni';
+    $('ok-final').textContent = eur(v.real ? L.netReal : L.net);
+    $('ok-final-s').textContent = 'a rendimento costante · ' + (v.real ? `${eur(L.net)} nominali` : `${eur(L.netReal)} in euro di oggi`);
+
+    const M = accMC(plan, v.real, RUNS_SHOW);
+    const fin = M[M.length - 1];
+    let hit = 0; for (const x of fin) if (x >= v.target) hit++;
+    $('ok-prob').textContent = fmtPct(hit / fin.length * 100, 0);
+    $('ok-prob-s').textContent = `di raggiungere ${eur(v.target)} ${unitLbl}`;
+
+    // Grafico
+    const det = accDet(plan, v.real);
+    const B = M.map(a => ({ p10: quant(a, .1), p25: quant(a, .25), p50: quant(a, .5), p75: quant(a, .75), p90: quant(a, .9) }));
+    const labels = det.map((_, k) => String(plan.start + k));
+    const c = tok('--s-contrib'), b1 = tok('--band-1'), b2 = tok('--band-2'), ink = tok('--ink-2');
+    const edge = (label, data, fill, bg, order) => ({ label, data, fill, order, backgroundColor: bg, borderColor: 'transparent', borderWidth: 0, pointRadius: 0, pointHoverRadius: 3, pointHoverBackgroundColor: c, tension: 0.25 });
+    if (chObj) chObj.destroy();
+    const opts = baseOpts(x => eurShort(x), { itemSort: (a, b) => b.raw - a.raw, callbacks: { title: it => 'Fine ' + it[0].label + ' · anno ' + (it[0].dataIndex + 1), label: x => ' ' + x.dataset.label + ': ' + eur(x.raw) } });
+    opts.scales.y.beginAtZero = true;
+    chObj = new Chart($('c-obj'), { type: 'line', options: opts, data: { labels, datasets: [
+      edge('10° percentile', B.map(x => x.p10), false, 'transparent', 4),
+      edge('90° percentile', B.map(x => x.p90), '-1', b1, 4),
+      edge('25° percentile', B.map(x => x.p25), false, 'transparent', 3),
+      edge('75° percentile', B.map(x => x.p75), '-1', b2, 3),
+      { label: 'Rendimento costante', order: 1, data: det, borderColor: c, backgroundColor: c, borderWidth: 2, pointRadius: 0, pointHoverRadius: 5, pointHoverBorderColor: tok('--surface'), pointHoverBorderWidth: 2, tension: 0.25, fill: false },
+      { label: 'Obiettivo', order: 0, data: det.map(() => v.target), borderColor: ink, backgroundColor: ink, borderWidth: 1.5, borderDash: [5, 4], pointRadius: 0, pointHoverRadius: 0, fill: false }
+    ] } });
+    $('o-chart-sub').textContent = `Valore netto tasse ${unitLbl}, se liquidato in quell'anno`;
+    $('o-note').textContent = v.safety === 'base'
+      ? 'Con rendimento costante l’obiettivo viene raggiunto esattamente, ma i mercati oscillano: per avere più margine scegli un livello di sicurezza prudente.'
+      : `Il piano è calcolato perché l’obiettivo sia raggiunto in almeno il ${v.safety}% degli scenari simulati, con volatilità ${fmtPct(v.vol, 0)}.`;
+  }
+
+  // =====================================================================
+  // PRELIEVO
+  // =====================================================================
+  const WD_KEY = 'calc-prelievo-v1';
+  // Percorre la fase di prelievo mese per mese. I prelievi sono netti: si vende
+  // quanto serve a coprire tasse (solo sulla quota di guadagno, metodo del costo
+  // medio) e commissioni. Restituisce il mese in cui il capitale non basta più.
+  function runWithdraw(v, months, growth, onYear) {
+    const i = v.infl / 100, tax = v.tax / 100, ter = v.ter / 100, bollo = v.bolloOn ? v.bollo / 100 : 0;
+    const feeM = 1 - Math.pow(1 - ter, 1 / 12);
+    const k = parseInt(v.freq, 10) || 12, step = 12 / k;
+    const fp = { feePct: v.feePct, feeMin: v.feeMin, feeMax: v.feeMax, feeOps: Math.max(1, Math.round(v.feeOps)) };
+    let bal = v.capital, basis = Math.min(v.basis, v.capital), depleted = null;
+    let yr = { net: 0, netReal: 0, gross: 0, tax: 0, fee: 0, ter: 0, bollo: 0, start: bal };
+    for (let t = 0; t < months; t++) {
+      const y = Math.floor(t / 12) + 1, m = t % 12;
+      if (m % step === 0 && depleted == null) {
+        const want = v.withdraw * 12 / k * (v.indexed ? Math.pow(1 + i, y - 1) : 1);
+        const gs = bal > 0 ? Math.max(0, (bal - basis) / bal) : 0;
+        let G = want / (1 - gs * tax);
+        for (let n = 0; n < 2; n++) G = (want + tradeCost(fp, G)) / (1 - gs * tax);
+        let net = want;
+        if (G > bal) { G = Math.max(0, bal); net = Math.max(0, G * (1 - gs * tax) - tradeCost(fp, G)); depleted = t; }
+        const fee = G > 0 ? Math.min(G, tradeCost(fp, G)) : 0, tx = G * gs * tax;
+        basis -= bal > 0 ? basis * G / bal : 0;
+        bal -= G;
+        yr.net += net; yr.netReal += net / Math.pow(1 + i, t / 12); yr.gross += G; yr.tax += tx; yr.fee += fee;
+      }
+      bal *= growth();
+      const f = bal * feeM; bal -= f; yr.ter += f;
+      if (m === 11) {
+        const b = Math.max(0, bal) * bollo; bal -= b; yr.bollo += b;
+        if (onYear) onYear(y, Object.assign({}, yr, { bal: Math.max(0, bal), real: Math.max(0, bal) / Math.pow(1 + i, y) }));
+        yr = { net: 0, netReal: 0, gross: 0, tax: 0, fee: 0, ter: 0, bollo: 0, start: bal };
+      }
+    }
+    return depleted;
+  }
+  const wdGrowthDet = v => { const g = Math.pow(1 + v.ret / 100, 1 / 12); return () => g; };
+  // Durate (in mesi; Infinity se il capitale non finisce entro l'orizzonte) per ogni scenario
+  function wdMC(v, months, runs, collect) {
+    const lasts = new Float64Array(runs), F = factors(5150, v, runs, months);
+    for (let r = 0; r < runs; r++) {
+      let n = r * months;
+      const d = runWithdraw(v, months, () => F[n++], collect ? (y, s) => collect(r, y, s) : null);
+      lasts[r] = d == null ? Infinity : d;
+    }
+    return lasts;
+  }
+  const fmtDur = months => {
+    if (!Number.isFinite(months)) return null;
+    const y = Math.floor(months / 12), m = Math.round(months % 12);
+    return (y === 1 ? '1 anno' : y + ' anni') + (m ? ` e ${m} ${m === 1 ? 'mese' : 'mesi'}` : '');
+  };
+  // Il capitale "dura H anni" se nessun prelievo resta scoperto prima del mese H·12
+  function wdLasts(v, H) {
+    if (v.safety === 'base') { const d = runWithdraw(v, H * 12, wdGrowthDet(v)); return d == null; }
+    const lasts = wdMC(v, H * 12, RUNS_SOLVE);
+    let ok = 0; for (const d of lasts) if (d >= H * 12) ok++;
+    return ok / lasts.length >= parseInt(v.safety, 10) / 100;
+  }
+
+  let chWd;
+  function renderWd() {
+    const v = readPanel('w-', WD_SCHEMA, WD_DEFAULTS);
+    saveTab(WD_KEY, v);
+    $('w-bollo').disabled = !v.bolloOn;
+    $('w-safety-h').textContent = v.safety === 'base' ? 'Senza oscillazioni del mercato' : `Usa la volatilità (${fmtPct(v.vol, 0)}) delle Avanzate`;
+    $('w-basis-h').textContent = v.basis > v.capital ? 'Supera il capitale: considerato pari al capitale' : 'Costo fiscale: le tasse si pagano solo sul guadagno';
+    const H = Math.round(v.years);
+    let plan = v;
+    if (v.solve === 'amount') {
+      let lo = 0, hi = Math.max(100, v.capital / (H * 12) * 2);
+      while (wdLasts(Object.assign({}, v, { withdraw: hi }), H) && hi < 1e7) { lo = hi; hi *= 2; }
+      for (let n = 0; n < 30 && hi - lo > 0.5; n++) {
+        const mid = (lo + hi) / 2;
+        if (wdLasts(Object.assign({}, v, { withdraw: mid }), H)) lo = mid; else hi = mid;
+      }
+      plan = Object.assign({}, v, { withdraw: Math.floor(lo) });
+    }
+    setSolved('w-', ['withdraw'], v.solve === 'amount' ? 'withdraw' : null, plan.withdraw);
+    $('w-safety').closest('.field').hidden = v.solve !== 'amount';
+
+    // Proiezione deterministica fino a 100 anni (per la durata) e righe per l'orizzonte
+    const rows = [];
+    const dDet = runWithdraw(plan, 1200, wdGrowthDet(plan), (y, s) => rows.push(Object.assign({ y }, s)));
+    const horizonRows = rows.slice(0, H);
+    const sum = key => horizonRows.reduce((a, r) => a + r[key], 0);
+    const lastH = horizonRows[horizonRows.length - 1];
+
+    // Scenari
+    const span = Math.min(60, Math.max(H + 5, dDet == null ? H + 5 : Math.ceil(dDet / 12) + 3));
+    const real = Array.from({ length: span }, () => new Float64Array(RUNS_SHOW));
+    const lasts = wdMC(plan, span * 12, RUNS_SHOW, (r, y, s) => { real[y - 1][r] = s.real; });
+    let ok = 0; for (const d of lasts) if (d >= H * 12) ok++;
+    const pLast = ok / lasts.length;
+
+    if (v.solve === 'amount') {
+      $('wk-main-l').textContent = 'Prelievo mensile sostenibile';
+      $('wk-main').textContent = eur(plan.withdraw);
+      $('wk-main-s').textContent = `al mese netti, per ${H} anni` + (v.indexed ? ', adeguati all’inflazione' : '');
+    } else {
+      $('wk-main-l').textContent = 'Il capitale dura';
+      if (dDet == null) {
+        $('wk-main').textContent = 'Oltre 100 anni';
+        $('wk-main-s').textContent = 'con rendimento costante non si esaurisce';
+      } else {
+        const yy = Math.floor(dDet / 12), mm = dDet % 12;
+        $('wk-main').textContent = yy === 1 ? '1 anno' : yy + ' anni';
+        $('wk-main-s').textContent = (mm ? `e ${mm} ${mm === 1 ? 'mese' : 'mesi'} · ` : '') + `fino al ${plan.start + yy}, a rendimento costante`;
+      }
+    }
+    $('wk-prob').textContent = fmtPct(pLast * 100, 0);
+    $('wk-prob-s').textContent = `che duri almeno ${H} anni`;
+    $('wk-net').textContent = eur(sum('net'));
+    $('wk-net-s').textContent = `${eur(sum('netReal'))} ai prezzi di inizio`;
+    $('wk-left').textContent = lastH ? eur(lastH.real) : '–';
+    $('wk-left-s').textContent = lastH ? `ai prezzi di inizio · ${eur(lastH.bal)} nominali` : '';
+    const sorted = Float64Array.from(lasts).sort();
+    const p10 = sorted[Math.floor(.1 * sorted.length)];
+    $('w-note').textContent = (Number.isFinite(p10) ? `Nel 10% degli scenari peggiori il capitale finisce entro ${fmtDur(p10)}. ` : `Anche nel 10% degli scenari peggiori il capitale dura oltre ${span} anni. `) +
+      `In ${H} anni: tasse ${eur(sum('tax'))}, commissioni ${eur(sum('fee'))}, TER ${eur(sum('ter'))}, bollo ${eur(sum('bollo'))}. ` +
+      'Gli importi "ai prezzi di inizio" sono deflazionati all’anno di inizio dei prelievi.';
+
+    // Grafico capitale reale
+    const B = real.map(a => ({ p10: quant(a, .1), p25: quant(a, .25), p50: quant(a, .5), p75: quant(a, .75), p90: quant(a, .9) }));
+    const det = Array.from({ length: span }, (_, k) => rows[k] ? rows[k].real : 0);
+    const labels = det.map((_, k) => String(plan.start + k));
+    const c = tok('--s-contrib'), b1 = tok('--band-1'), b2 = tok('--band-2');
+    const edge = (label, data, fill, bg, order) => ({ label, data, fill, order, backgroundColor: bg, borderColor: 'transparent', borderWidth: 0, pointRadius: 0, pointHoverRadius: 3, pointHoverBackgroundColor: c, tension: 0.25 });
+    if (chWd) chWd.destroy();
+    const opts = baseOpts(x => eurShort(x), { itemSort: (a, b) => b.raw - a.raw, callbacks: { title: it => 'Fine ' + it[0].label + ' · anno ' + (it[0].dataIndex + 1), label: x => ' ' + x.dataset.label + ': ' + eur(x.raw) } });
+    opts.scales.y.beginAtZero = true;
+    chWd = new Chart($('c-wd'), { type: 'line', options: opts, data: { labels, datasets: [
+      edge('10° percentile', B.map(x => x.p10), false, 'transparent', 4),
+      edge('90° percentile', B.map(x => x.p90), '-1', b1, 4),
+      edge('25° percentile', B.map(x => x.p25), false, 'transparent', 3),
+      edge('75° percentile', B.map(x => x.p75), '-1', b2, 3),
+      { label: 'Rendimento costante', order: 1, data: det, borderColor: c, backgroundColor: c, borderWidth: 2, pointRadius: 0, pointHoverRadius: 5, pointHoverBorderColor: tok('--surface'), pointHoverBorderWidth: 2, tension: 0.25, fill: false }
+    ] } });
+
+    // Tabella anno per anno (rendimento costante)
+    const t = $('wtable');
+    t.tHead.innerHTML = '<tr>' + ['Anno n.', 'Anno', 'Capitale inizio anno', 'Prelievi lordi', 'Tasse', 'Commissioni', 'TER', 'Bollo', 'Netto ricevuto', 'Netto ai prezzi di inizio', 'Capitale fine anno', 'Capitale ai prezzi di inizio'].map(h => `<th scope="col">${h}</th>`).join('') + '</tr>';
+    t.tBodies[0].innerHTML = horizonRows.map(r => `<tr><th scope="row">${r.y}</th><th scope="row">${plan.start + r.y - 1}</th><td>${eur(r.start)}</td><td>${eur(r.gross)}</td><td>${eur(r.tax)}</td><td>${eur(r.fee)}</td><td>${eur(r.ter)}</td><td>${eur(r.bollo)}</td><td>${eur(r.net)}</td><td>${eur(r.netReal)}</td><td class="em">${eur(r.bal)}</td><td class="em">${eur(r.real)}</td></tr>`).join('');
+    t.tFoot.innerHTML = `<tr><th scope="row" colspan="2" style="text-align:left">Totale</th><td></td><td>${eur(sum('gross'))}</td><td>${eur(sum('tax'))}</td><td>${eur(sum('fee'))}</td><td>${eur(sum('ter'))}</td><td>${eur(sum('bollo'))}</td><td>${eur(sum('net'))}</td><td>${eur(sum('netReal'))}</td><td>${lastH ? eur(lastH.bal) : ''}</td><td>${lastH ? eur(lastH.real) : ''}</td></tr>`;
+  }
+
+  // =====================================================================
+  // CONFRONTO tra due piani di accumulo
+  // =====================================================================
+  const CMP_KEY = 'calc-confronto-v1';
+  const CMP_SCHEMA = [
+    { title: 'Piano', fields: [
+      { k: 'name', t: 'text', label: 'Nome' }
+    ] },
+    { title: 'Versamenti', fields: [
+      { k: 'initial', t: 'num', label: 'Versamento iniziale', unit: '€', step: 500, min: 0 },
+      { k: 'monthly', t: 'num', label: 'Versamento mensile', unit: '€', step: 10, min: 0 }
+    ], adv: [
+      { k: 'freq', t: 'sel', label: 'Frequenza versamenti', opts: FREQ_OPTS },
+      { k: 'adjust', t: 'chk', label: 'Adegua all’inflazione' },
+      { k: 'freePac', t: 'chk', label: 'PAC gratuito' }
+    ] },
+    { title: 'Rendimento e costi', fields: [
+      { k: 'ret', t: 'num', label: 'Rendimento medio annuo', unit: '%', step: 0.1 },
+      { k: 'tax', t: 'num', label: 'Tassazione al prelievo', unit: '%', step: 0.5, min: 0, max: 100 }
+    ], adv: [
+      { k: 'vol', t: 'num', label: 'Volatilità annua', unit: '%', step: 1, min: 0, max: 60 },
+      { k: 'ter', t: 'num', label: 'Spese annue fondi (TER)', unit: '%', step: 0.05, min: 0 },
+      { k: 'bolloOn', t: 'chk', label: 'Includi imposta di bollo' },
+      { k: 'bollo', t: 'num', label: 'Aliquota bollo', unit: '%', step: 0.05, min: 0 },
+      { k: 'feePct', t: 'num', label: 'Commissione per operazione', unit: '%', step: 0.01, min: 0 },
+      { k: 'feeMin', t: 'num', label: 'Minimo per operazione', unit: '€', step: 0.5, min: 0 },
+      { k: 'feeMax', t: 'num', label: 'Massimo per operazione', hint: '0 = nessun massimo', unit: '€', step: 1, min: 0 },
+      { k: 'feeOps', t: 'num', label: 'Operazioni per versamento', step: 1, min: 1 }
+    ] },
+    { title: 'Inflazione', fields: [
+      { k: 'infl', t: 'num', label: 'Inflazione media', unit: '%', step: 0.1 }
+    ] },
+    { title: 'Orizzonte', fields: [
+      { k: 'start', t: 'num', label: 'Anno inizio', step: 1 },
+      { k: 'years', t: 'num', label: 'Durata', unit: 'anni', step: 1, min: 1, max: 60 }
+    ], adv: [
+      { k: 'stop', t: 'num', label: 'Interrompi versamenti dopo', unit: 'anni', step: 1, min: 0, max: 60 }
+    ] }
+  ];
+  const CMP_BASE = {
+    initial: 20000, monthly: 200, freq: '12', adjust: false, freePac: true,
+    ret: 7, tax: 26, vol: 15, ter: 0.2, bolloOn: true, bollo: 0.2, feePct: 0.19, feeMin: 1.5, feeMax: 18, feeOps: 1,
+    infl: 2, start: 2026, years: 30, stop: 30
+  };
+  const CMP_DEFAULTS = {
+    a: Object.assign({}, CMP_BASE, { name: 'ETF a basso costo' }),
+    b: Object.assign({}, CMP_BASE, { name: 'Fondo comune', ter: 1.8 })
+  };
+
+  function cmpCell(px, f) {
+    const id = px + f.k, aria = px === 'cb-' ? ` aria-label="${f.label} (piano B)"` : '';
+    if (f.t === 'chk') return `<div class="toggle cell" id="${id}-w"><input id="${id}" type="checkbox"${aria}></div>`;
+    if (f.t === 'sel') return `<div class="inp cell" id="${id}-w"><select id="${id}"${aria}>${f.opts.map(o => `<option value="${o[0]}">${o[1]}</option>`).join('')}</select></div>`;
+    if (f.t === 'text') return `<div class="inp cell" id="${id}-w"><input id="${id}" type="text" maxlength="40"${aria} style="text-align:left"></div>`;
+    const attrs = ['step', 'min', 'max'].filter(a => f[a] != null).map(a => `${a}="${f[a]}"`).join(' ');
+    return `<div class="inp cell" id="${id}-w"><input id="${id}" type="number" ${attrs}${aria}>${f.unit ? `<span class="unit">${f.unit}</span>` : ''}</div>`;
+  }
+  const cmpRow = f => `<div class="crow"><label for="ca-${f.k}">${f.label}${f.hint ? `<span class="hint">${f.hint}</span>` : ''}</label>${cmpCell('ca-', f)}${cmpCell('cb-', f)}</div>`;
+  function buildCmpPanel() {
+    $('params-cmp').innerHTML = '<h2>Parametri</h2>' +
+      '<div class="crow chead"><span></span><span><i class="sw" style="background:var(--s-contrib)"></i>Piano A</span><span><i class="sw" style="background:var(--s-interest)"></i>Piano B</span></div>' +
+      CMP_SCHEMA.map(g => `<div class="pgroup"><span class="eyebrow">${g.title}</span>${g.fields.map(cmpRow).join('')}` +
+        (g.adv ? `<details class="adv"><summary>Avanzate</summary><div class="adv-body">${g.adv.map(cmpRow).join('')}</div></details>` : '') + '</div>').join('') +
+      '<div class="cmp-actions"><button class="chip" type="button" id="cmp-import">Importa da Accumulo in A</button><button class="chip" type="button" id="cmp-copy">Copia A in B</button></div>' +
+      '<button class="btn" id="cmp-reset" type="button">Ripristina valori di esempio</button>';
+  }
+  function readCmpSide(px) {
+    const out = {};
+    for (const f of schemaFields(CMP_SCHEMA)) {
+      const el = $(px + f.k);
+      if (f.t === 'chk') out[f.k] = el.checked;
+      else if (f.t === 'sel' || f.t === 'text') out[f.k] = el.value;
+      else {
+        const v = parseFloat(el.value);
+        let x = Number.isFinite(v) ? v : 0;
+        if (f.min != null) x = Math.max(f.min, x);
+        if (f.max != null) x = Math.min(f.max, x);
+        out[f.k] = x;
+      }
+    }
+    return out;
+  }
+  const readCmp = () => ({ a: readCmpSide('ca-'), b: readCmpSide('cb-') });
+  function writeCmpSide(px, v) {
+    for (const f of schemaFields(CMP_SCHEMA)) {
+      const el = $(px + f.k);
+      if (f.t === 'chk') el.checked = !!v[f.k]; else el.value = v[f.k];
+    }
+  }
+  function loadCmp() {
+    const emb = embeddedParams();
+    let v = null;
+    if (emb && emb.cmp) v = emb.cmp;
+    else if (!emb) { try { const s = localStorage.getItem(CMP_KEY); if (s) v = JSON.parse(s); } catch (e) {} }
+    return {
+      a: Object.assign({}, CMP_DEFAULTS.a, v && v.a),
+      b: Object.assign({}, CMP_DEFAULTS.b, v && v.b)
+    };
+  }
+  function cmpPlan(o) {
+    return {
+      initial: o.initial, periodic: o.monthly * 12, freq: parseInt(o.freq, 10) || 12, adjust: o.adjust, freePac: o.freePac,
+      ret: o.ret, tax: o.tax, ter: o.ter, bollo: o.bollo, bolloOn: o.bolloOn,
+      feePct: o.feePct, feeMin: o.feeMin, feeMax: o.feeMax, feeOps: Math.max(1, Math.round(o.feeOps)), costOverride: null,
+      infl: o.infl, start: Math.round(o.start), years: Math.round(o.years), stop: Math.round(o.stop), vol: o.vol
+    };
+  }
+
+  // Scenari con numeri casuali comuni: i due piani vivono gli stessi mercati
+  // (stessa sequenza di shock), ciascuno con il proprio rendimento e volatilità.
+  let zCache = null;
+  function zDraws(runs, months) {
+    if (zCache && zCache.runs === runs && zCache.months >= months) return zCache.z;
+    const gauss = makeGauss(31337), z = new Float64Array(runs * months);
+    for (let n = 0; n < z.length; n++) z[n] = gauss();
+    zCache = { runs, months, z };
+    return z;
+  }
+  function cmpFinals(p, runs, months) {
+    const z = zDraws(runs, months), { muM, sdM } = lnParams(p), i = p.infl / 100, tax = p.tax / 100;
+    const real = new Float64Array(runs);
+    let beat = 0;
+    for (let r = 0; r < runs; r++) {
+      let n = r * months, last = null;
+      runPlan(p, () => Math.exp(muM + sdM * z[n++]), (y, s) => { if (y === p.years) last = s; });
+      const net = last.bal - Math.max(0, last.bal - last.contribTot) * tax;
+      real[r] = net / Math.pow(1 + i, p.years);
+      if (real[r] > last.contribPayReal) beat++;
+    }
+    return { real, pBeat: beat / runs };
+  }
+
+  const cmpExpand = { costs: false };
+  let chCmp;
+  function renderCmp() {
+    const v = readCmp();
+    saveTab(CMP_KEY, v);
+    // Evidenzia in B i valori diversi da A
+    for (const f of schemaFields(CMP_SCHEMA)) {
+      if (f.k === 'name') continue;
+      $('cb-' + f.k + '-w').classList.toggle('diff', String(v.a[f.k]) !== String(v.b[f.k]));
+    }
+    $('ca-bollo').disabled = !v.a.bolloOn; $('cb-bollo').disabled = !v.b.bolloOn;
+    document.querySelectorAll('#params-cmp details.adv').forEach(d => {
+      const n = d.querySelectorAll('.diff').length;
+      d.querySelector('summary').innerHTML = 'Avanzate' + (n ? ` <span class="badge">${n} ${n === 1 ? 'differenza' : 'differenze'}</span>` : '');
+    });
+    const nameA = v.a.name || 'Piano A', nameB = v.b.name || 'Piano B';
+    const pA = cmpPlan(v.a), pB = cmpPlan(v.b);
+    const A = simulate(pA), B = simulate(pB);
+    const months = Math.max(pA.years, pB.years) * 12;
+    const mA = cmpFinals(pA, RUNS_SHOW, months), mB = cmpFinals(pB, RUNS_SHOW, months);
+    let bWins = 0; for (let r = 0; r < RUNS_SHOW; r++) if (mB.real[r] > mA.real[r]) bWins++;
+    const pBwins = bWins / RUNS_SHOW;
+
+    // Riquadri
+    const diff = B.last.netReal - A.last.netReal;
+    $('ck-a-l').textContent = nameA; $('ck-b-l').textContent = nameB;
+    $('ck-a').textContent = eur(A.last.netReal); $('ck-b').textContent = eur(B.last.netReal);
+    $('ck-a-s').textContent = 'tassato e deflazionato, fine ' + (pA.start + pA.years - 1);
+    $('ck-b-s').textContent = 'tassato e deflazionato, fine ' + (pB.start + pB.years - 1);
+    const winner = diff >= 0 ? nameB : nameA;
+    $('ck-diff').textContent = (diff >= 0 ? '+' : '−') + eur(Math.abs(diff)).replace('-', '');
+    $('ck-diff-s').textContent = Math.abs(diff) < 1 ? 'i due piani si equivalgono' : `a favore di ${winner}, in euro di oggi`;
+    $('ck-win').textContent = fmtPct(pBwins * 100, 0);
+    $('ck-win-s').textContent = `degli scenari in cui ${nameB} finisce meglio di ${nameA}`;
+
+    // Tabella A · B · Differenza
+    const costs = s => s.terTot + s.opsTot + s.bolloTot;
+    const pct = x => x == null ? '–' : fmtPct(x * 100);
+    const fmtDiff = (d, better, kind) => {
+      if (d == null || !Number.isFinite(d)) return '–';
+      const tiny = kind === 'pct' ? Math.abs(d) < 0.0005 : Math.abs(d) < 0.5;
+      if (tiny) return '<span class="eq">=</span>';
+      const txt = (d > 0 ? '+' : '−') + (kind === 'pct' ? fmtPct(Math.abs(d) * 100) .replace('%', ' pt') : eur(Math.abs(d)));
+      const cls = better == null ? '' : ((d > 0) === better ? 'good' : 'minus');
+      return `<span class="${cls}">${txt}</span>`;
+    };
+    const rows = [
+      ['Totale versato', s => s.last.contribTot, null],
+      ['Costi totali', costs, false, 'costs'],
+      ['Costi fondi (TER)', s => s.terTot, false, 'costs-d'],
+      ['Costi operazioni', s => s.opsTot, false, 'costs-d'],
+      ['Imposta di bollo', s => s.bolloTot, false, 'costs-d'],
+      ['Interessi maturati, netto costi', s => s.last.gain, true],
+      ['Bilancio finale', s => s.last.endBal, true],
+      ['Tasse al prelievo', s => s.last.taxDue, null],
+      ['Bilancio finale tassato', s => s.last.net, true],
+      ['Tassato e deflazionato', s => s.last.netReal, true, 'key'],
+      ['Rendimento reale annuo', s => s.irrReal, true, 'pct'],
+    ];
+    let h = '';
+    for (const [label, fn, better, tag] of rows) {
+      if (tag === 'costs-d' && !cmpExpand.costs) continue;
+      const a = fn(A), b = fn(B), kind = tag === 'pct' ? 'pct' : 'eur';
+      const show = x => kind === 'pct' ? pct(x) : eur(x);
+      const th = tag === 'costs' ? `<button type="button" class="exp" data-g="costs" aria-expanded="${cmpExpand.costs}">${label}</button>` : label;
+      const cls = tag === 'costs-d' ? 'det' : tag === 'key' ? 'key' : '';
+      h += `<tr class="${cls}"><th scope="row">${th}</th><td>${show(a)}</td><td>${show(b)}</td><td class="d">${fmtDiff(a == null || b == null ? null : b - a, better, kind)}</td></tr>`;
+    }
+    h += `<tr><th scope="row">Probabilità di battere l’inflazione</th><td>${fmtPct(mA.pBeat * 100, 0)}</td><td>${fmtPct(mB.pBeat * 100, 0)}</td><td class="d">${fmtDiff(mB.pBeat - mA.pBeat, true, 'pct')}</td></tr>`;
+    $('ctable').tHead.innerHTML = `<tr><th></th><th scope="col"><i class="sw" style="background:var(--s-contrib)"></i>${escapeHtml(nameA)}</th><th scope="col"><i class="sw" style="background:var(--s-interest)"></i>${escapeHtml(nameB)}</th><th scope="col">Differenza B − A</th></tr>`;
+    $('ctable').tBodies[0].innerHTML = h;
+
+    // Grafico nel tempo
+    const y0 = Math.min(pA.start, pB.start), y1 = Math.max(pA.start + pA.years, pB.start + pB.years) - 1;
+    const labels = [], dA = [], dB = [];
+    const byYear = (s, Y) => { const r = s.rows.find(x => x.year === Y); return r ? r.netReal : null; };
+    for (let Y = y0; Y <= y1; Y++) { labels.push(String(Y)); dA.push(byYear(A, Y)); dB.push(byYear(B, Y)); }
+    let cross = null;
+    for (let k = 1; k < labels.length; k++) {
+      if (dA[k] == null || dB[k] == null || dA[k - 1] == null || dB[k - 1] == null) continue;
+      if (Math.sign(dB[k] - dA[k]) !== Math.sign(dB[k - 1] - dA[k - 1]) && Math.sign(dB[k] - dA[k]) !== 0) { cross = { year: labels[k], lead: dB[k] > dA[k] ? nameB : nameA }; }
+    }
+    $('c-cmp-sub').textContent = cross ? `${cross.lead} passa in vantaggio dal ${cross.year}` : 'Valore tassato e deflazionato, se liquidato in quell’anno';
+    const cA = tok('--s-contrib'), cB = tok('--s-interest');
+    const line = (label, data, c, order) => ({ label, data, order, borderColor: c, backgroundColor: c, borderWidth: 2, pointRadius: 0, pointHoverRadius: 5, pointHoverBorderColor: tok('--surface'), pointHoverBorderWidth: 2, tension: 0.25, fill: false, spanGaps: false });
+    if (chCmp) chCmp.destroy();
+    const opts = baseOpts(x => eurShort(x), { callbacks: {
+      title: it => 'Fine ' + it[0].label,
+      label: x => x.raw == null ? null : ' ' + x.dataset.label + ': ' + eur(x.raw),
+      footer: it => { const a = it.find(x => x.datasetIndex === 0), b = it.find(x => x.datasetIndex === 1); return a && b && a.raw != null && b.raw != null ? 'Differenza B − A: ' + (b.raw - a.raw >= 0 ? '+' : '−') + eur(Math.abs(b.raw - a.raw)) : ''; }
+    } });
+    opts.scales.y.beginAtZero = true;
+    chCmp = new Chart($('c-cmp'), { type: 'line', options: opts, data: { labels, datasets: [line(nameA, dA, cA, 1), line(nameB, dB, cB, 0)] } });
+    $('cl-a').textContent = nameA; $('cl-b').textContent = nameB;
+    $('cmp-note').textContent = `Entrambi i piani sono simulati sugli stessi ${fmtNum.format(RUNS_SHOW)} andamenti di mercato, ognuno con il proprio rendimento e la propria volatilità: così il confronto è alla pari. Nei valori di B, i campi diversi da A sono evidenziati.`;
+  }
+  function escapeHtml(t) { return String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+  function initCmp() {
+    buildCmpPanel();
+    const v = loadCmp();
+    writeCmpSide('ca-', v.a); writeCmpSide('cb-', v.b);
+    const later = debounce(renderCmp, 150);
+    $('params-cmp').addEventListener('input', later);
+    $('params-cmp').addEventListener('change', later);
+    $('cmp-reset').addEventListener('click', () => { writeCmpSide('ca-', CMP_DEFAULTS.a); writeCmpSide('cb-', CMP_DEFAULTS.b); renderCmp(); });
+    $('cmp-copy').addEventListener('click', () => { const a = readCmpSide('ca-'); writeCmpSide('cb-', Object.assign({}, a, { name: $('cb-name').value })); renderCmp(); });
+    $('cmp-import').addEventListener('click', () => {
+      const p = readParams();
+      writeCmpSide('ca-', Object.assign({}, readCmpSide('ca-'), {
+        initial: p.initial, monthly: round2(p.periodic / 12), freq: String(p.freq), adjust: p.adjust, freePac: p.freePac,
+        ret: p.ret, tax: p.tax, vol: p.vol, ter: p.ter, bolloOn: p.bolloOn, bollo: p.bollo,
+        feePct: p.feePct, feeMin: p.feeMin, feeMax: p.feeMax, feeOps: p.feeOps,
+        infl: p.infl, start: p.start, years: p.years, stop: Math.min(p.stop, 60)
+      }));
+      renderCmp();
+    });
+    $('ctable').addEventListener('click', e => {
+      const b = e.target.closest('.exp'); if (!b) return;
+      cmpExpand.costs = !cmpExpand.costs; renderCmp();
+      const again = document.querySelector('#ctable .exp'); if (again) again.focus();
+    });
+  }
+
+  // ---------- Schede ----------
+  const TABS = { acc: 'accumulo', obj: 'obiettivo', wd: 'prelievo', cmp: 'confronto' };
+  let activeTab = 'acc';
+  const renderers = { acc: () => render(), obj: () => renderObj(), wd: () => renderWd(), cmp: () => renderCmp() };
+  function showTab(name, fromUser) {
+    activeTab = name;
+    for (const k of Object.keys(TABS)) {
+      $('tab-' + k).hidden = k !== name;
+      const b = $('tabbtn-' + k);
+      b.setAttribute('aria-selected', String(k === name));
+      b.tabIndex = k === name ? 0 : -1;
+    }
+    if (fromUser) { try { history.replaceState(null, '', '#' + TABS[name]); } catch (e) {} }
+    renderers[name]();
+  }
+  function initTabs() {
+    buildPanel($('params-obj'), 'o-', OBJ_SCHEMA);
+    buildPanel($('params-wd'), 'w-', WD_SCHEMA);
+    writePanel('o-', OBJ_SCHEMA, loadTab('obj', OBJ_KEY, OBJ_DEFAULTS));
+    writePanel('w-', WD_SCHEMA, loadTab('wd', WD_KEY, WD_DEFAULTS));
+    const objLater = debounce(renderObj, 180), wdLater = debounce(renderWd, 180);
+    $('params-obj').addEventListener('input', objLater);
+    $('params-obj').addEventListener('change', objLater);
+    $('params-wd').addEventListener('input', wdLater);
+    $('params-wd').addEventListener('change', wdLater);
+    $('o-reset').addEventListener('click', () => { writePanel('o-', OBJ_SCHEMA, OBJ_DEFAULTS); renderObj(); });
+    $('w-reset').addEventListener('click', () => { writePanel('w-', WD_SCHEMA, WD_DEFAULTS); renderWd(); });
+    initCmp();
+    const order = Object.keys(TABS);
+    $('tabbar').addEventListener('click', e => { const b = e.target.closest('[role="tab"]'); if (b) showTab(b.dataset.tab, true); });
+    $('tabbar').addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const n = (order.indexOf(activeTab) + (e.key === 'ArrowRight' ? 1 : order.length - 1)) % order.length;
+      showTab(order[n], true); $('tabbtn-' + order[n]).focus();
+    });
+    const fromHash = Object.keys(TABS).find(k => '#' + TABS[k] === location.hash);
+    if (fromHash && fromHash !== 'acc') showTab(fromHash, false);
+  }
+
+  // ---------- Avvio ----------
+  // Copia della pagina prima di qualsiasi modifica dinamica: base per il file salvato.
+  const PRISTINE = document.documentElement.cloneNode(true);
+  writeParams(loadParams());
+  renderInflationStatic();
+  render();
+  initTabs();
+  let inflDrawn = false;
+  $('det-infl').addEventListener('toggle', e => { if (e.target.open && !inflDrawn) { renderInflationChart(); inflDrawn = true; } });
+
+  const params = document.querySelector('.params');
+  params.addEventListener('input', e => {
+    const id = e.target.id;
+    if (id === 'p-monthly') {
+      state.lead = 'monthly';
+      const v = parseFloat(e.target.value);
+      $('p-annual').value = Number.isFinite(v) ? round2(v * 12) : '';
+    } else if (id === 'p-annual') {
+      state.lead = 'annual';
+      const v = parseFloat(e.target.value);
+      $('p-monthly').value = Number.isFinite(v) ? round2(v / 12) : '';
+    } else if (id === 'p-cost') {
+      const v = parseFloat(e.target.value);
+      state.costOverride = Number.isFinite(v) ? Math.max(0, v) : null;
+    }
+    render();
+  });
+  params.addEventListener('change', render);
+  $('p-vol').addEventListener('input', render);
+  document.querySelector('.seg').addEventListener('click', e => {
+    const b = e.target.closest('[data-comp]'); if (!b || b.dataset.comp === compView) return;
+    compView = b.dataset.comp; render();
+  });
+  $('rtable').addEventListener('click', e => {
+    const b = e.target.closest('.exp'); if (!b) return;
+    resExpand[b.dataset.g] = !resExpand[b.dataset.g];
+    render();
+    const again = document.querySelector(`#rtable .exp[data-g="${b.dataset.g}"]`); if (again) again.focus();
+  });
+  $('det-mc').addEventListener('toggle', e => { if (e.target.open) render(); });
+  params.addEventListener('click', e => {
+    if (e.target.id === 'cost-reset') { state.costOverride = null; render(); }
+  });
+  $('reset').addEventListener('click', () => { writeParams(DEFAULTS); render(); });
+
+
+
+  // ---------- Salvataggio file ----------
+  let downloadsApi = null;
+  try { if (window.claude && window.claude.use) window.claude.use('downloads').then(d => { downloadsApi = d; }).catch(() => {}); } catch (e) {}
+
+  function buildSavedHtml(p) {
+    const doc = PRISTINE.cloneNode(true);
+    // Tieni solo gli script della pagina (Chart.js e app), non quelli dell'ambiente che la ospita.
+    doc.querySelectorAll('script').forEach(sc => { if (sc.id !== 'lib-chartjs' && sc.id !== 'app') sc.remove(); });
+    doc.querySelectorAll('details:not(#det-mc)').forEach(d => d.removeAttribute('open'));
+    // I pannelli delle schede Obiettivo e Prelievo si rigenerano all'apertura
+    doc.querySelectorAll('#params-obj, #params-wd, #params-cmp').forEach(el => { el.innerHTML = ''; });
+    doc.querySelector('#det-mc').setAttribute('open', '');
+    const old = doc.querySelector('#saved-params'); if (old) old.remove();
+    const data = doc.ownerDocument.createElement('script');
+    data.type = 'application/json';
+    data.id = 'saved-params';
+    const saved = { acc: p, obj: readPanel('o-', OBJ_SCHEMA, OBJ_DEFAULTS), wd: readPanel('w-', WD_SCHEMA, WD_DEFAULTS), cmp: readCmp(), savedAt: new Date().toISOString() };
+    data.textContent = JSON.stringify(saved).replace(/</g, '\\u003c');
+    const head = doc.querySelector('head');
+    head.appendChild(data);
+    return '<!DOCTYPE html>\n' + doc.outerHTML;
+  }
+  function setStatus(t) { $('save-status').textContent = t; }
+
+  $('save-file').addEventListener('click', async () => {
+    const p = readParams();
+    const html = buildSavedHtml(p);
+    const d = new Date();
+    const stamp = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const filename = `Calcolo investimento ${stamp}.html`;
+    // Torna alla vista di apertura
+    document.querySelectorAll('details.adv').forEach(el => { el.open = false; });
+    const btn = $('save-file');
+    if (downloadsApi) {
+      btn.disabled = true;
+      try {
+        await downloadsApi.save({ filename, data: html });
+        setStatus('File salvato');
+      } catch (err) {
+        const code = err && err.code;
+        setStatus(code === 'declined' ? 'Salvataggio annullato' : code === 'rate_limited' ? 'Attendi qualche secondo e riprova' : 'Non è stato possibile salvare il file');
+      } finally { btn.disabled = false; }
+      return;
+    }
+    try {
+      const url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      setStatus('File salvato');
+    } catch (e) {
+      setStatus('Non è stato possibile salvare il file');
+    }
+  });
+
+  // Ridisegna con i colori del tema quando cambia
+  const rerender = () => { renderers[activeTab](); if (activeTab === 'acc' && inflDrawn) renderInflationChart(); };
+  try { window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', rerender); } catch (e) {}
+  try { document.fonts.ready.then(rerender); } catch (e) {}
+  new MutationObserver(rerender).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+})();
+</script>

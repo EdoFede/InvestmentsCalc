@@ -1,0 +1,7 @@
+# Screenshot
+Screenshot*.png
+Screenshot*.jpg
+Screen Shot*.png
+
+# macOS
+.DS_Store
